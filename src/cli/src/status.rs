@@ -38,7 +38,7 @@ fn resolve_date_range(args: &StatusArgs) -> (Option<chrono::NaiveDate>, Option<c
 pub fn run(args: &StatusArgs) -> Result<()> {
     let fetcher = email::lark::LarkCliFetcher;
     let (start, end) = resolve_date_range(args);
-    let report = meta::RecruitmentOrchestrator::run_with_range(&fetcher, start, end, args.days)?;
+    let report = meta::generate_report_with_range(&fetcher, start, end, args.days)?;
     print!("{}", report);
     Ok(())
 }

@@ -17,7 +17,7 @@ pub struct PositionPlan {
     pub note: String,
 }
 
-fn default_plan() -> RecruitmentPlan {
+pub fn default_plan() -> RecruitmentPlan {
     RecruitmentPlan {
         month: "2026-06".into(),
         positions: vec![
