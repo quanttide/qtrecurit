@@ -1,3 +1,4 @@
+use crate::meta;
 use crate::status;
 
 use clap::{Parser, Subcommand};
@@ -13,6 +14,8 @@ pub struct Cli {
 pub enum Commands {
     /// 招聘数据统计（面向公开发文）
     Status(status::StatusArgs),
+    /// 主数据概览
+    Meta,
 }
 
 pub fn run() {
@@ -23,6 +26,9 @@ pub fn run() {
             if let Err(e) = status::run(args) {
                 eprintln!("错误: {}", e);
             }
+        }
+        Some(Commands::Meta) => {
+            print!("{}", meta::generate_master_data_overview());
         }
         None => {}
     }
