@@ -183,4 +183,16 @@ mod tests {
         let rules = builtin_rules();
         assert!(!rules.is_empty());
     }
+
+    #[test]
+    fn test_classify_exclude_priority() {
+        let rules = test_rules();
+        assert_eq!(classify("数据运营实习申请", &rules), Some("新媒体运营"));
+    }
+
+    #[test]
+    fn test_config_loading_fallback_to_builtin() {
+        let config = load_config();
+        assert!(!config.rules.is_empty());
+    }
 }

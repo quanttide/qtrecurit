@@ -225,3 +225,97 @@ pub fn collect_stats() -> MasterDataStats {
         rule_count: rules.len(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_load_positions_count() {
+        let positions = MasterDataManager::load_positions();
+        assert_eq!(positions.len(), 12);
+        assert!(positions.iter().all(|p| p.active));
+    }
+
+    #[test]
+    fn test_load_positions_id_format() {
+        let positions = MasterDataManager::load_positions();
+        assert_eq!(positions[0].id, "pos-001");
+        assert_eq!(positions[0].name, "全栈工程师");
+        assert_eq!(positions[11].id, "pos-012");
+        assert_eq!(positions[11].name, "法务实习生");
+    }
+
+    #[test]
+    fn test_load_plan_month() {
+        let plan = MasterDataManager::load_plan();
+        assert_eq!(plan.id, "plan-001");
+        assert_eq!(plan.month, "2026-06");
+    }
+
+    #[test]
+    fn test_load_plan_items() {
+        let plan = MasterDataManager::load_plan();
+        assert_eq!(plan.items.len(), 8);
+        assert_eq!(plan.items[0].position_name, "数据工程师");
+        assert_eq!(plan.items[0].headcount, 2);
+    }
+
+    #[test]
+    fn test_load_classification_rules_count() {
+        let rules = MasterDataManager::load_classification_rules();
+        assert_eq!(rules.len(), 12);
+    }
+
+    #[test]
+    fn test_load_classification_rules_mapping() {
+        let rules = MasterDataManager::load_classification_rules();
+        assert_eq!(rules[0].id, "rule-001");
+        assert_eq!(rules[0].position_id, "pos-001");
+        assert!(rules[0].keywords.contains(&"全栈".to_string()));
+    }
+
+    #[test]
+    fn test_build_position_index() {
+        let positions = MasterDataManager::load_positions();
+        let index = MasterDataManager::build_position_index(&positions);
+        assert_eq!(index.len(), 12);
+        assert!(index.contains_key("全栈工程师"));
+        assert_eq!(index.get("全栈工程师").unwrap().id, "pos-001");
+    }
+
+    #[test]
+    fn test_build_rule_index() {
+        let rules = MasterDataManager::load_classification_rules();
+        let index = MasterDataManager::build_rule_index(&rules);
+        assert_eq!(index.len(), 12);
+        assert!(index.contains_key("rule-001"));
+    }
+
+    #[test]
+    fn test_generate_master_data_overview_contains_sections() {
+        let overview = generate_master_data_overview();
+        assert!(overview.contains("# 主数据概览"));
+        assert!(overview.contains("## 岗位"));
+        assert!(overview.contains("## 招聘计划"));
+        assert!(overview.contains("## 分类规则"));
+        assert!(overview.contains("全栈工程师"));
+        assert!(overview.contains("pos-001"));
+    }
+
+    #[test]
+    fn test_collect_stats_counts() {
+        let stats = collect_stats();
+        assert_eq!(stats.total_positions, 12);
+        assert_eq!(stats.active_positions, 12);
+        assert_eq!(stats.plan_month, "2026-06");
+        assert_eq!(stats.rule_count, 12);
+    }
+
+    #[test]
+    fn test_collect_stats_headcount() {
+        let stats = collect_stats();
+        assert!(stats.total_headcount > 0);
+        assert_eq!(stats.total_filled, 0);
+    }
+}
