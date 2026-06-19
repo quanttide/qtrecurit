@@ -1,5 +1,5 @@
+pub mod config;
 pub mod email;
-pub mod notice;
 
 use anyhow::Result;
 

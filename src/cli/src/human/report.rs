@@ -3,50 +3,8 @@ use std::collections::BTreeMap;
 use chrono::NaiveDate;
 use chrono::Datelike;
 
-use crate::meta::config;
-
-pub fn extract_date(date_str: &str) -> Option<NaiveDate> {
-    if date_str.is_empty() {
-        return None;
-    }
-
-    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(date_str) {
-        return Some(dt.date_naive());
-    }
-
-    if let Ok(d) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
-        return Some(d);
-    }
-
-    let re = regex::Regex::new(r"(\d{4}-\d{2}-\d{2})").ok()?;
-    let cap = re.find(date_str)?;
-    NaiveDate::parse_from_str(cap.as_str(), "%Y-%m-%d").ok()
-}
-
-pub struct MailItem {
-    pub subject: String,
-    pub date: String,
-}
-
-pub fn filter_by_date<'a>(
-    items: &'a [MailItem],
-    start: Option<NaiveDate>,
-    end: Option<NaiveDate>,
-) -> Vec<&'a MailItem> {
-    items
-        .iter()
-        .filter(|m| {
-            let date = extract_date(&m.date);
-            match (date, start, end) {
-                (Some(d), Some(s), Some(e)) => d >= s && d <= e,
-                (Some(d), Some(s), None) => d >= s,
-                (Some(d), None, Some(e)) => d <= e,
-                (Some(_), None, None) => true,
-                (None, _, _) => false,
-            }
-        })
-        .collect()
-}
+use crate::connect::config;
+use crate::connect::email;
 
 pub fn build_title(start: Option<NaiveDate>, end: Option<NaiveDate>, days: Option<u32>) -> String {
     match (start, end, days) {
@@ -66,7 +24,7 @@ pub fn build_title(start: Option<NaiveDate>, end: Option<NaiveDate>, days: Optio
 }
 
 pub fn format_report(
-    items: &[&MailItem],
+    items: &[&email::MailItem],
     rules: &[config::PositionRule],
     title: &str,
 ) -> String {
@@ -92,7 +50,7 @@ pub fn format_report(
             }
         }
 
-        if let Some(d) = extract_date(&m.date) {
+        if let Some(d) = email::extract_date(&m.date) {
             *daily.entry(d.to_string()).or_insert(0) += 1;
         }
     }
@@ -166,61 +124,49 @@ pub fn format_report(
     out
 }
 
+/// 从已获取的邮件条目生成报表
+pub fn generate_report_from_items(
+    items: &[email::MailItem],
+    start: Option<NaiveDate>,
+    end: Option<NaiveDate>,
+    days: Option<u32>,
+) -> String {
+    let cfg = config::load_config();
+    let filtered = email::filter_by_date(items, start, end);
+    let title = build_title(start, end, days);
+    format_report(&filtered, &cfg.rules, &title)
+}
+
+/// 报表编排
+pub fn generate_report(fetcher: &dyn crate::connect::EmailFetcher) -> anyhow::Result<String> {
+    generate_report_with_range(fetcher, None, None, None)
+}
+
+/// 带日期范围的报表编排
+pub fn generate_report_with_range(
+    fetcher: &dyn crate::connect::EmailFetcher,
+    start: Option<NaiveDate>,
+    end: Option<NaiveDate>,
+    days: Option<u32>,
+) -> anyhow::Result<String> {
+    let msgs = fetcher.fetch_all()?;
+    let items: Vec<email::MailItem> = msgs
+        .into_iter()
+        .map(|m| email::MailItem {
+            subject: m.subject,
+            date: m.date,
+        })
+        .collect();
+
+    Ok(generate_report_from_items(&items, start, end, days))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn test_rules() -> Vec<config::PositionRule> {
         config::load_config().rules
-    }
-
-    #[test]
-    fn test_extract_date_iso8601() {
-        let d = extract_date("2026-06-15T10:30:00+08:00");
-        assert!(d.is_some());
-        assert_eq!(d.unwrap().to_string(), "2026-06-15");
-    }
-
-    #[test]
-    fn test_extract_date_ymd() {
-        let d = extract_date("2026-06-15");
-        assert!(d.is_some());
-        assert_eq!(d.unwrap().to_string(), "2026-06-15");
-    }
-
-    #[test]
-    fn test_extract_date_empty() {
-        assert!(extract_date("").is_none());
-    }
-
-    #[test]
-    fn test_extract_date_regex_fallback() {
-        let d = extract_date("some text 2026-06-15 more text");
-        assert!(d.is_some());
-        assert_eq!(d.unwrap().to_string(), "2026-06-15");
-    }
-
-    #[test]
-    fn test_filter_by_date() {
-        let items = vec![
-            MailItem { subject: "a".into(), date: "2026-06-14".into() },
-            MailItem { subject: "b".into(), date: "2026-06-15".into() },
-            MailItem { subject: "c".into(), date: "2026-06-16".into() },
-        ];
-        let start = NaiveDate::from_ymd_opt(2026, 6, 15);
-        let end = NaiveDate::from_ymd_opt(2026, 6, 15);
-        let filtered = filter_by_date(&items, start, end);
-        assert_eq!(filtered.len(), 1);
-        assert_eq!(filtered[0].subject, "b");
-    }
-
-    #[test]
-    fn test_filter_by_date_no_match() {
-        let items = vec![MailItem { subject: "a".into(), date: "2026-06-14".into() }];
-        let start = NaiveDate::from_ymd_opt(2026, 6, 15);
-        let end = NaiveDate::from_ymd_opt(2026, 6, 15);
-        let filtered = filter_by_date(&items, start, end);
-        assert!(filtered.is_empty());
     }
 
     #[test]
@@ -235,10 +181,10 @@ mod tests {
     fn test_format_report_with_data() {
         let rules = config::load_config().rules;
         let items = vec![
-            MailItem { subject: "应聘全栈工程师 - 张三".into(), date: "2026-06-15".into() },
-            MailItem { subject: "【后端开发】李四".into(), date: "2026-06-16".into() },
+            email::MailItem { subject: "应聘全栈工程师 - 张三".into(), date: "2026-06-15".into() },
+            email::MailItem { subject: "【后端开发】李四".into(), date: "2026-06-16".into() },
         ];
-        let refs: Vec<&MailItem> = items.iter().collect();
+        let refs: Vec<&email::MailItem> = items.iter().collect();
         let report = format_report(&refs, &rules, "测试报告");
         assert!(report.contains("2 封投递。"));
         assert!(report.contains("岗位分布"));
@@ -250,9 +196,9 @@ mod tests {
     fn test_format_report_unnamed_samples() {
         let rules = test_rules();
         let items = vec![
-            MailItem { subject: "自动回复：感谢投递".into(), date: "2026-06-15".into() },
+            email::MailItem { subject: "自动回复：感谢投递".into(), date: "2026-06-15".into() },
         ];
-        let refs: Vec<&MailItem> = items.iter().collect();
+        let refs: Vec<&email::MailItem> = items.iter().collect();
         let report = format_report(&refs, &rules, "测试");
         assert!(report.contains("未识别邮件样本"));
         assert!(report.contains("自动回复：感谢投递"));
@@ -262,9 +208,9 @@ mod tests {
     fn test_format_report_empty_subject() {
         let rules = test_rules();
         let items = vec![
-            MailItem { subject: "".into(), date: "2026-06-15".into() },
+            email::MailItem { subject: "".into(), date: "2026-06-15".into() },
         ];
-        let refs: Vec<&MailItem> = items.iter().collect();
+        let refs: Vec<&email::MailItem> = items.iter().collect();
         let report = format_report(&refs, &rules, "测试");
         assert!(report.contains("【空主题】"));
     }
