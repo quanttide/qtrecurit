@@ -18,8 +18,4 @@ fn test_status_help() {
     cmd.args(["status", "--help"]).assert().success();
 }
 
-#[test]
-fn test_meta_help() {
-    let mut cmd = Command::cargo_bin("qtrecurit").unwrap();
-    cmd.args(["meta", "--help"]).assert().success();
-}
+

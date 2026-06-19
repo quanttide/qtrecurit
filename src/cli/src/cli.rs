@@ -1,7 +1,6 @@
-use crate::overview;
-use crate::status;
+use clap::{Args, Parser, Subcommand};
 
-use clap::{Parser, Subcommand};
+use crate::status;
 
 #[derive(Parser)]
 #[command(name = "qtrecurit", version, about = "量潮招聘 CLI")]
@@ -13,9 +12,20 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// 招聘数据统计（面向公开发文）
-    Status(status::StatusArgs),
-    /// 主数据概览
-    Meta,
+    Status(StatusArgs),
+}
+
+#[derive(Args)]
+pub struct StatusArgs {
+    /// 统计最近 N 天
+    #[arg(long)]
+    pub days: Option<u32>,
+    /// 开始日期 (YYYY-MM-DD)
+    #[arg(long)]
+    pub start: Option<String>,
+    /// 结束日期 (YYYY-MM-DD)
+    #[arg(long)]
+    pub end: Option<String>,
 }
 
 pub fn run() {
@@ -26,9 +36,6 @@ pub fn run() {
             if let Err(e) = status::run(args) {
                 eprintln!("错误: {}", e);
             }
-        }
-        Some(Commands::Meta) => {
-            print!("{}", overview::generate_master_data_overview());
         }
         None => {}
     }
