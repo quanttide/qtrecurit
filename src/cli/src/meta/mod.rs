@@ -1,5 +1,7 @@
+pub mod config;
 pub mod index;
 
+pub use config::{classify, load_config, PositionRule, HumanConfig};
 pub use index::{MasterDataManager, PlanPositionIndex, RulePositionIndex};
 
 #[cfg(test)]

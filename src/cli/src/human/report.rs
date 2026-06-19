@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use chrono::NaiveDate;
 use chrono::Datelike;
 
-use super::config;
+use crate::meta::config;
 
 pub fn extract_date(date_str: &str) -> Option<NaiveDate> {
     if date_str.is_empty() {
