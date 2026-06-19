@@ -18,7 +18,7 @@ pub struct MasterDataManager;
 
 impl MasterDataManager {
     pub fn build_rule_position_index() -> RulePositionIndex {
-        let rules = human::config::load_config();
+        let rules = super::config::load_config();
         let mut rule_to_position = HashMap::new();
         let mut position_to_rules: HashMap<String, Vec<String>> = HashMap::new();
 

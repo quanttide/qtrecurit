@@ -3,7 +3,7 @@ use crate::meta::MasterDataManager;
 
 /// 主数据关联概览
 pub fn generate_master_data_overview() -> String {
-    let rules = human::config::load_config();
+    let rules = crate::meta::load_config();
     let plan = human::status::default_plan();
     let plan_index = MasterDataManager::build_plan_position_index(&plan);
 

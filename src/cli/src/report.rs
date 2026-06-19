@@ -13,7 +13,7 @@ pub fn generate_report_with_range(
     end: Option<chrono::NaiveDate>,
     days: Option<u32>,
 ) -> anyhow::Result<String> {
-    let cfg = human::config::load_config();
+    let cfg = crate::meta::load_config();
     let msgs = fetcher.fetch_all()?;
 
     let items: Vec<human::report::MailItem> = msgs
