@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Position {
+pub struct Department {
     #[serde(default)]
     pub id: Option<String>,
     pub name: String,
     #[serde(default)]
-    pub department: Option<String>,
+    pub parent: Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub leader: Option<String>,
 }
