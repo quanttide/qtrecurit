@@ -1,4 +1,4 @@
-use crate::meta;
+use crate::overview;
 use crate::status;
 
 use clap::{Parser, Subcommand};
@@ -28,7 +28,7 @@ pub fn run() {
             }
         }
         Some(Commands::Meta) => {
-            print!("{}", meta::generate_master_data_overview());
+            print!("{}", overview::generate_master_data_overview());
         }
         None => {}
     }
