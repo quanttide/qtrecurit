@@ -194,6 +194,13 @@ mod tests {
     }
 
     #[test]
+    fn test_extract_date_regex_fallback() {
+        let d = extract_date("some text 2026-06-15 more text");
+        assert!(d.is_some());
+        assert_eq!(d.unwrap().to_string(), "2026-06-15");
+    }
+
+    #[test]
     fn test_filter_by_date() {
         let items = vec![
             MailItem { subject: "a".into(), date: "2026-06-14".into() },
@@ -205,6 +212,15 @@ mod tests {
         let filtered = filter_by_date(&items, start, end);
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].subject, "b");
+    }
+
+    #[test]
+    fn test_filter_by_date_no_match() {
+        let items = vec![MailItem { subject: "a".into(), date: "2026-06-14".into() }];
+        let start = NaiveDate::from_ymd_opt(2026, 6, 15);
+        let end = NaiveDate::from_ymd_opt(2026, 6, 15);
+        let filtered = filter_by_date(&items, start, end);
+        assert!(filtered.is_empty());
     }
 
     #[test]
@@ -228,5 +244,28 @@ mod tests {
         assert!(report.contains("岗位分布"));
         assert!(report.contains("全栈工程师"));
         assert!(report.contains("投递趋势"));
+    }
+
+    #[test]
+    fn test_format_report_unnamed_samples() {
+        let rules = test_rules();
+        let items = vec![
+            MailItem { subject: "自动回复：感谢投递".into(), date: "2026-06-15".into() },
+        ];
+        let refs: Vec<&MailItem> = items.iter().collect();
+        let report = format_report(&refs, &rules, "测试");
+        assert!(report.contains("未识别邮件样本"));
+        assert!(report.contains("自动回复：感谢投递"));
+    }
+
+    #[test]
+    fn test_format_report_empty_subject() {
+        let rules = test_rules();
+        let items = vec![
+            MailItem { subject: "".into(), date: "2026-06-15".into() },
+        ];
+        let refs: Vec<&MailItem> = items.iter().collect();
+        let report = format_report(&refs, &rules, "测试");
+        assert!(report.contains("【空主题】"));
     }
 }
