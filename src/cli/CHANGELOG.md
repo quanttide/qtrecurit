@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## [0.0.1] - 2026-07-03
+
+### Added
+
+- `connect/email.rs`：分页拉取 `fetch_all_meta`、批量正文下载 `fetch_full`、游标持久化、缓存读写
+- `connect/downloader.rs`：邮件附件下载（临时文件→重命名）
+- `connect/classifier.rs`：LLM 邮件分类（quanttide-agent，6 种邮件类型）
+- `funnel.rs`：招聘漏斗分析（投递→笔试→面试→Offer）
+
+### Changed
+
+- `connect/config.rs`：分类规则从 profile 加载，回退内置规则
+- `status.rs`：报告末尾追加漏斗段
+- 测试从 47 增至 61
+
+### Removed
+
+- 无
+
 ## [0.0.2] - 2026-06-19
 
 ### Changed
