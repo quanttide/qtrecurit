@@ -1,5 +1,5 @@
 [package]
-name = "qtrecurit-cli"
+name = "qtrecurit_cli"
 version = "0.0.1"
 edition = "2024"
 
@@ -21,3 +21,6 @@ quanttide-agent = "0.1.0"
 assert_cmd = "2"
 predicates = "3"
 tempfile = "3"
+[lib]
+name = "qtrecurit_cli"
+path = "src/lib.rs"
