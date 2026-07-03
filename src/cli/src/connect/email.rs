@@ -8,6 +8,10 @@ use std::time::Duration;
 
 use anyhow::{Context, Result};
 use serde::Deserialize;
+ 
+/// lark-cli 命令超时时间（秒），可根据网络状况调整
+pub const LARK_TIMEOUT_SECS: u64 = 60;
+
 use serde_json::Value;
 
 use super::{EmailFetcher, Message};
@@ -114,8 +118,8 @@ fn run_lark_raw(args: &[&str]) -> Result<std::process::Output> {
     });
 
     let output = rx
-        .recv_timeout(Duration::from_secs(15))
-        .map_err(|_| anyhow::anyhow!("lark-cli 请求超时（15s），请检查网络连接或认证状态"))?
+        .recv_timeout(Duration::from_secs(LARK_TIMEOUT_SECS))
+        .map_err(|_| anyhow::anyhow!("lark-cli 请求超时，请检查网络连接或认证状态"))?
         .context("lark-cli 进程异常退出")?;
 
     if !output.status.success() {
