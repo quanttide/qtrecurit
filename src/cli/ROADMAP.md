@@ -95,7 +95,7 @@
 ## 发布顺序
 
 ```
-v0.0.x  Step 1 ← 先做这个，最核心的增量拉取
+v0.0.3  Step 1 ✅ 完成
 v0.0.x  Step 2 ← 附件下载
 v0.0.x  Step 3 ← profile 配置化
 v0.0.x  Step 4 ← LLM 分类
