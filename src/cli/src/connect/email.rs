@@ -86,8 +86,19 @@ fn run_lark_cli<T: serde::de::DeserializeOwned>(args: &[&str]) -> Result<T> {
 
 // ── 通用 lark-cli 调用 ─────────────────────────────────────────────────
 
+/// 调用 lark-cli 命令，返回解析后的 JSON Value。
+pub fn run_lark_json(args: &[&str]) -> Result<Value> {
+    let output = run_lark_raw(args)?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let filtered: String = stdout
+        .lines()
+        .filter(|l| !l.starts_with("tip:"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok(serde_json::from_str(&filtered).context("lark-cli 返回数据格式异常")?)
+}
+
 /// 调用 lark-cli 命令，返回原始输出。
-/// 过滤掉 lark-cli 输出的 tip: 前缀行（来自配置提示）。
 fn run_lark_raw(args: &[&str]) -> Result<std::process::Output> {
     let child = Command::new("lark-cli")
         .args(args)

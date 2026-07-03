@@ -1,4 +1,5 @@
 pub mod config;
+pub mod downloader;
 pub mod email;
 
 use anyhow::Result;
@@ -30,9 +31,10 @@ mod tests {
     #[test]
     fn test_mock_fetcher_returns_messages() {
         let fetcher = MockFetcher {
-            messages: vec![
-                Message { subject: "应聘全栈工程师".into(), date: "2026-06-15".into() },
-            ],
+            messages: vec![Message {
+                subject: "应聘全栈工程师".into(),
+                date: "2026-06-15".into(),
+            }],
         };
         let result = fetcher.fetch_all().unwrap();
         assert_eq!(result.len(), 1);
@@ -48,7 +50,10 @@ mod tests {
 
     #[test]
     fn test_message_debug_and_clone() {
-        let msg = Message { subject: "test".into(), date: "2026-06-01".into() };
+        let msg = Message {
+            subject: "test".into(),
+            date: "2026-06-01".into(),
+        };
         let cloned = msg.clone();
         assert_eq!(format!("{:?}", cloned), format!("{:?}", msg));
     }
