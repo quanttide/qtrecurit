@@ -98,7 +98,7 @@
 v0.0.3  Step 1 ✅ 完成 — 分页拉取、游标、完整正文、缓存、过滤
 v0.0.3  Step 2 ✅ 完成 — 附件下载
 v0.0.3  Step 3 ✅ 完成 — profile 配置化（回退内置规则）
-v0.0.x  Step 4 ← LLM 分类
+v0.0.3  Step 4 ✅ 完成 — LLM 分类（quanttide-agent）
 v0.1.0  Step 5 ← 漏斗报告，v0.1.0 稳定版
 ```
 
