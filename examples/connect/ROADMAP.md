@@ -32,7 +32,7 @@ Pipeline 看板 → 岗位管理 → 笔试管理 → 协作评价 → 飞书集
 | **增量同步** | `.cursor` 游标机制，只拉新邮件 | `src/main.rs` — `load_cursor` / `save_cursor` |
 | **附件下载** | 支持临时文件（`.tmp`）→重命名，防中断产生残文件 | `src/downloader.rs` |
 | **LLM 分类** | 6 分类（resume_submission / written_exam / interview_scheduling / offer_letter / hr_internal / unrelated），批量 LLM 调用 | `src/classify.py`（通过 `AsyncLLM`） |
-| **候选人整理** | N 位候选人，按邮件+姓名聚合 | `data/journal/_index.json` + 每候选人独立 JSON |
+| **候选人整理** | 251 位候选人，按邮件+姓名聚合 | `data/journal/_index.json` + 每候选人独立 JSON |
 | **候选人级分类** | LLM 按候选人维度判断整体阶段 + 每封邮件细分类 | `scripts/classify_journal.py` |
 | **漏斗报告** | 生成 Markdown 漏斗图+转化率+每日趋势 | `scripts/funnel_report.py` |
 | **笔试题目** | 7 个岗位的 Markdown 笔试题和邮件模板 | `docs/questions/` |
