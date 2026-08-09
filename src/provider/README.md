@@ -26,12 +26,12 @@ go run ./cmd/server
 | 域 | 端点 | 鉴权 | 说明 |
 |:---|:-----|:-----|:-----|
 | Health | `GET /health` | 否 | 健康检查 |
-| Standards | `GET /api/v1/standards/policies` | 否 | 政策列表（只读） |
-| Standards | `GET /api/v1/standards/policies/{id}` | 否 | 政策详情 |
-| Standards | `GET /api/v1/standards/criteria` | 否 | 筛选标准列表（只读） |
-| Standards | `GET /api/v1/standards/criteria/{id}` | 否 | 筛选标准详情 |
-| Standards | `GET /api/v1/standards/assessments` | 否 | 考核说明列表（只读） |
-| Standards | `GET /api/v1/standards/assessments/{id}` | 否 | 考核说明详情 |
+| Criteria | `GET /api/v1/policies` | 否 | 政策列表（只读） |
+| Criteria | `GET /api/v1/policies/{id}` | 否 | 政策详情 |
+| Criteria | `GET /api/v1/criteria` | 否 | 筛选标准列表（只读） |
+| Criteria | `GET /api/v1/criteria/{id}` | 否 | 筛选标准详情 |
+| Criteria | `GET /api/v1/assessments` | 否 | 考核说明列表（只读） |
+| Criteria | `GET /api/v1/assessments/{id}` | 否 | 考核说明详情 |
 | Candidates | `GET/POST /api/v1/candidates` | 否 | 候选人列表 / 创建（内部写入） |
 | Candidates | `GET /api/v1/candidates/{id}` | 查询凭证 | 候选人凭查询凭证查看自己的档案 |
 | Candidates | `PUT/DELETE /api/v1/candidates/{id}` | 否 | 候选人更新 / 删除（内部） |

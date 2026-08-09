@@ -52,11 +52,11 @@ func TestCandidateContract(t *testing.T) {
 	}
 }
 
-// TestStandardContract 验证考评标准三类资源的契约字段。
-func TestStandardContract(t *testing.T) {
-	policy := Policy{ID: "p1", Title: "考核政策", Content: "……", Status: "active"}
-	criterion := Criterion{ID: "c1", Title: "责任心标准", Description: "……", Dimension: "责任心", Status: "active"}
-	assessment := Assessment{ID: "a1", Title: "考核分层说明", Description: "……", Kind: "考核分层", Content: "实训生/实习生/长期共建者/短期打手", Status: "active"}
+// TestCriteriaContract 验证考评标准三类资源的契约字段（以 criteria.json 为基准）。
+func TestCriteriaContract(t *testing.T) {
+	policy := Policy{ID: "policy-philosophy", Title: "选人理念", Content: "……", Status: "active"}
+	criterion := Criterion{ID: "criterion-responsibility", Title: "责任心", Description: "……", Status: "active"}
+	assessment := Assessment{ID: "a1", Title: "考核分层说明", Content: "实训生/实习生/长期共建者/短期打手", Status: "active"}
 
 	for name, v := range map[string]any{"policy": policy, "criterion": criterion, "assessment": assessment} {
 		data, err := json.Marshal(v)
@@ -66,5 +66,33 @@ func TestStandardContract(t *testing.T) {
 		if len(data) == 0 {
 			t.Errorf("%s: empty json", name)
 		}
+	}
+}
+
+// TestCriteriaFieldsAlignWithSeedData 验证模型字段与种子数据 records 同构：
+// 每条记录只含 id/title/content|description/status。
+func TestCriteriaFieldsAlignWithSeedData(t *testing.T) {
+	policy := Policy{ID: "p", Title: "t", Content: "c", Status: "s"}
+	data, _ := json.Marshal(policy)
+	var fields map[string]any
+	json.Unmarshal(data, &fields)
+	if len(fields) != 4 {
+		t.Errorf("policy: got %d fields %v, want 4 (id/title/content/status)", len(fields), fields)
+	}
+
+	criterion := Criterion{ID: "c", Title: "t", Description: "d", Status: "s"}
+	data, _ = json.Marshal(criterion)
+	fields = map[string]any{}
+	json.Unmarshal(data, &fields)
+	if len(fields) != 4 {
+		t.Errorf("criterion: got %d fields %v, want 4 (id/title/description/status)", len(fields), fields)
+	}
+
+	assessment := Assessment{ID: "a", Title: "t", Content: "c", Status: "s"}
+	data, _ = json.Marshal(assessment)
+	fields = map[string]any{}
+	json.Unmarshal(data, &fields)
+	if len(fields) != 4 {
+		t.Errorf("assessment: got %d fields %v, want 4 (id/title/content/status)", len(fields), fields)
 	}
 }

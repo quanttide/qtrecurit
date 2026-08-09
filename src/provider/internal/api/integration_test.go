@@ -27,18 +27,20 @@ func newTestServer(t *testing.T) *httptest.Server {
 		os.RemoveAll(dir)
 	})
 
-	standardHandler := NewStandardHandler(st)
+	policyHandler := NewPolicyHandler(st)
+	criterionHandler := NewCriterionHandler(st)
+	assessmentHandler := NewAssessmentHandler(st)
 	candidateHandler := NewCandidateHandler(st)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", Health)
 
-	mux.HandleFunc("GET /api/v1/standards/policies", standardHandler.ListPolicies)
-	mux.HandleFunc("GET /api/v1/standards/policies/{id}", standardHandler.GetPolicy)
-	mux.HandleFunc("GET /api/v1/standards/criteria", standardHandler.ListCriteria)
-	mux.HandleFunc("GET /api/v1/standards/criteria/{id}", standardHandler.GetCriterion)
-	mux.HandleFunc("GET /api/v1/standards/assessments", standardHandler.ListAssessments)
-	mux.HandleFunc("GET /api/v1/standards/assessments/{id}", standardHandler.GetAssessment)
+	mux.HandleFunc("GET /api/v1/policies", policyHandler.ListPolicies)
+	mux.HandleFunc("GET /api/v1/policies/{id}", policyHandler.GetPolicy)
+	mux.HandleFunc("GET /api/v1/criteria", criterionHandler.ListCriteria)
+	mux.HandleFunc("GET /api/v1/criteria/{id}", criterionHandler.GetCriterion)
+	mux.HandleFunc("GET /api/v1/assessments", assessmentHandler.ListAssessments)
+	mux.HandleFunc("GET /api/v1/assessments/{id}", assessmentHandler.GetAssessment)
 
 	mux.HandleFunc("GET /api/v1/candidates", candidateHandler.ListCandidates)
 	mux.HandleFunc("POST /api/v1/candidates", candidateHandler.CreateCandidate)
@@ -110,14 +112,14 @@ func TestHealth(t *testing.T) {
 	}
 }
 
-// --- 考评标准只读 API ---
+// --- 考评准则只读 API ---
 
-func TestStandards_EmptyLists(t *testing.T) {
+func TestCriteria_EmptyLists(t *testing.T) {
 	srv := newTestServer(t)
 	for _, path := range []string{
-		"/api/v1/standards/policies",
-		"/api/v1/standards/criteria",
-		"/api/v1/standards/assessments",
+		"/api/v1/policies",
+		"/api/v1/criteria",
+		"/api/v1/assessments",
 	} {
 		resp, err := http.Get(srv.URL + path)
 		if err != nil {
@@ -134,9 +136,9 @@ func TestStandards_EmptyLists(t *testing.T) {
 	}
 }
 
-func TestStandards_NotFound(t *testing.T) {
+func TestCriteria_NotFound(t *testing.T) {
 	srv := newTestServer(t)
-	resp, v := doJSON(t, "GET", srv.URL+"/api/v1/standards/policies/none", "")
+	resp, v := doJSON(t, "GET", srv.URL+"/api/v1/policies/none", "")
 	if resp.StatusCode != http.StatusNotFound {
 		t.Errorf("status: got %d, want 404", resp.StatusCode)
 	}
@@ -145,9 +147,9 @@ func TestStandards_NotFound(t *testing.T) {
 	}
 }
 
-func TestStandards_WriteNotAllowed(t *testing.T) {
+func TestCriteria_WriteNotAllowed(t *testing.T) {
 	srv := newTestServer(t)
-	resp, _ := doJSON(t, "POST", srv.URL+"/api/v1/standards/policies", `{"title":"x"}`)
+	resp, _ := doJSON(t, "POST", srv.URL+"/api/v1/policies", `{"title":"x"}`)
 	if resp.StatusCode != http.StatusMethodNotAllowed {
 		t.Errorf("status: got %d, want 405", resp.StatusCode)
 	}
