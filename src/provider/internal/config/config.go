@@ -1,0 +1,63 @@
+package config
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/quanttide/qtrecurit-provider/internal/store"
+)
+
+type Config struct {
+	Server ServerConfig `json:"server"`
+	Store  store.Config `json:"store"`
+	Log    LogConfig    `json:"log"`
+}
+
+type ServerConfig struct {
+	Addr string `json:"addr"`
+}
+
+type LogConfig struct {
+	Level  string `json:"level"`
+	Format string `json:"format"`
+}
+
+func Load(path string) (*Config, error) {
+	cfg := &Config{
+		Server: ServerConfig{Addr: ":8000"},
+		Store: store.Config{
+			Driver: "file",
+			Path:   "data",
+		},
+		Log: LogConfig{Level: "info", Format: "text"},
+	}
+
+	if path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read config: %w", err)
+		}
+		if err := json.Unmarshal(data, cfg); err != nil {
+			return nil, fmt.Errorf("parse config: %w", err)
+		}
+	}
+
+	if v := os.Getenv("QTRECURIT_ADDR"); v != "" {
+		cfg.Server.Addr = v
+	}
+	if v := os.Getenv("QTRECURIT_STORE_DRIVER"); v != "" {
+		cfg.Store.Driver = v
+	}
+	if v := os.Getenv("QTRECURIT_STORE_PATH"); v != "" {
+		cfg.Store.Path = v
+	}
+	if v := os.Getenv("QTRECURIT_LOG_LEVEL"); v != "" {
+		cfg.Log.Level = v
+	}
+	if v := os.Getenv("QTRECURIT_LOG_FORMAT"); v != "" {
+		cfg.Log.Format = v
+	}
+
+	return cfg, nil
+}
