@@ -1,11 +1,11 @@
 {
-    "name": "qtrecurit_studio",
-    "short_name": "qtrecurit_studio",
+    "name": "量潮招聘",
+    "short_name": "量潮招聘",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "量潮招聘工作台",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
