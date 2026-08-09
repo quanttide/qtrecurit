@@ -33,19 +33,21 @@ func main() {
 	defer st.Close()
 	slog.Info("store initialized", "driver", cfg.Store.Driver, "path", cfg.Store.Path)
 
-	standardHandler := api.NewStandardHandler(st)
+	policyHandler := api.NewPolicyHandler(st)
+	criterionHandler := api.NewCriterionHandler(st)
+	assessmentHandler := api.NewAssessmentHandler(st)
 	candidateHandler := api.NewCandidateHandler(st)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", api.Health)
 
-	// 考评标准只读 API（透明公开，无需登录）
-	mux.HandleFunc("GET /api/v1/standards/policies", standardHandler.ListPolicies)
-	mux.HandleFunc("GET /api/v1/standards/policies/{id}", standardHandler.GetPolicy)
-	mux.HandleFunc("GET /api/v1/standards/criteria", standardHandler.ListCriteria)
-	mux.HandleFunc("GET /api/v1/standards/criteria/{id}", standardHandler.GetCriterion)
-	mux.HandleFunc("GET /api/v1/standards/assessments", standardHandler.ListAssessments)
-	mux.HandleFunc("GET /api/v1/standards/assessments/{id}", standardHandler.GetAssessment)
+	// 考评准则只读 API（透明公开，无需登录）：政策 / 筛选标准 / 考核说明
+	mux.HandleFunc("GET /api/v1/policies", policyHandler.ListPolicies)
+	mux.HandleFunc("GET /api/v1/policies/{id}", policyHandler.GetPolicy)
+	mux.HandleFunc("GET /api/v1/criteria", criterionHandler.ListCriteria)
+	mux.HandleFunc("GET /api/v1/criteria/{id}", criterionHandler.GetCriterion)
+	mux.HandleFunc("GET /api/v1/assessments", assessmentHandler.ListAssessments)
+	mux.HandleFunc("GET /api/v1/assessments/{id}", assessmentHandler.GetAssessment)
 
 	// 候选人档案 API（内部写入 + 候选人凭查询凭证自查询）
 	mux.HandleFunc("GET /api/v1/candidates", candidateHandler.ListCandidates)

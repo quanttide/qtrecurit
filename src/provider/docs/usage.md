@@ -21,12 +21,12 @@ go run ./cmd/server
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/v1/standards/policies` | 政策列表 |
-| GET | `/api/v1/standards/policies/{id}` | 政策详情 |
-| GET | `/api/v1/standards/criteria` | 筛选标准列表 |
-| GET | `/api/v1/standards/criteria/{id}` | 筛选标准详情 |
-| GET | `/api/v1/standards/assessments` | 考核说明列表 |
-| GET | `/api/v1/standards/assessments/{id}` | 考核说明详情 |
+| GET | `/api/v1/policies` | 政策列表 |
+| GET | `/api/v1/policies/{id}` | 政策详情 |
+| GET | `/api/v1/criteria` | 筛选标准列表 |
+| GET | `/api/v1/criteria/{id}` | 筛选标准详情 |
+| GET | `/api/v1/assessments` | 考核说明列表 |
+| GET | `/api/v1/assessments/{id}` | 考核说明详情 |
 
 ### 候选人档案（内部写入 + 候选人自查询）
 
@@ -43,7 +43,7 @@ go run ./cmd/server
 ### 考评标准只读
 
 ```bash
-curl http://localhost:8000/api/v1/standards/assessments
+curl http://localhost:8000/api/v1/assessments
 ```
 
 ### 内部写入：创建候选人（评估 + 信任记录同构）
@@ -101,7 +101,7 @@ go test ./...
 src/provider/
 ├── cmd/server/       # 服务入口
 ├── internal/
-│   ├── api/          # HTTP handler（Standards / Candidates / Health）
+│   ├── api/          # HTTP handler（Policy / Criterion / Assessment / Candidates / Health）
 │   ├── config/       # 配置管理（文件 + 环境变量）
 │   ├── model/        # 档案 schema 契约（候选人与考评标准）
 │   ├── store/        # 存储层（FileStore，S3 预留）

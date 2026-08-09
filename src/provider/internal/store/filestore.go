@@ -16,9 +16,9 @@ import (
 //
 // 数据按集合（collection）组织，每个集合对应一个 JSON 文件:
 //
-//	{path}/standards/policies.json
-//	{path}/standards/criteria.json
-//	{path}/standards/assessments.json
+//	{path}/policies.json
+//	{path}/criteria.json
+//	{path}/assessments.json
 //	{path}/candidates.json
 //
 // 每个 JSON 文件内容为 {"records": {"id1": {...}, "id2": {...}}}。
@@ -42,7 +42,7 @@ func newFileStore(path string) (*fileStore, error) {
 }
 
 // collectionPath 返回集合对应的 JSON 文件路径。
-// 集合名用 "/" 分隔子目录，例如 "standards/policies" → {path}/standards/policies.json
+// 集合名用 "/" 分隔子目录，例如 "policies" → {path}/policies.json
 func (fs *fileStore) collectionPath(collection string) string {
 	clean := strings.TrimSuffix(collection, ".json")
 	return filepath.Join(fs.path, clean+".json")

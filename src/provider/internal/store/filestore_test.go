@@ -125,11 +125,11 @@ func TestNestedCollection(t *testing.T) {
 	defer cleanup()
 
 	data := json.RawMessage(`{"title":"p1"}`)
-	id, err := s.Create("standards/policies", data)
+	id, err := s.Create("policies", data)
 	if err != nil {
 		t.Fatalf("Create nested failed: %v", err)
 	}
-	got, err := s.Get("standards/policies", id)
+	got, err := s.Get("policies", id)
 	if err != nil {
 		t.Fatalf("Get nested failed: %v", err)
 	}

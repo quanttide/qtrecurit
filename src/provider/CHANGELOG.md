@@ -8,11 +8,11 @@
 - 存储层：`internal/store` — Store 接口 + FileStore（本地 JSON 文件），S3 预留
 - 契约先行：`internal/model` 定义候选人档案 schema（评估字段 + 信任字段同构，统一 `records` 记录单元）
 
-#### Standards 域（考评标准只读 API，透明公开）
+#### 考评准则只读 API（透明公开）
 
-- 政策：`GET /api/v1/standards/policies`、`GET /api/v1/standards/policies/{id}`
-- 筛选标准：`GET /api/v1/standards/criteria`、`GET /api/v1/standards/criteria/{id}`
-- 考核说明：`GET /api/v1/standards/assessments`、`GET /api/v1/standards/assessments/{id}`
+- 政策：`GET /api/v1/policies`、`GET /api/v1/policies/{id}`
+- 筛选标准：`GET /api/v1/criteria`、`GET /api/v1/criteria/{id}`
+- 考核说明：`GET /api/v1/assessments`、`GET /api/v1/assessments/{id}`
 
 #### Candidates 域（候选人档案 API）
 
