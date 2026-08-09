@@ -1,0 +1,13 @@
+{
+  "server": {
+    "addr": ":8001"
+  },
+  "store": {
+    "driver": "file",
+    "path": "/tmp/qtrecurit-test"
+  },
+  "log": {
+    "level": "error",
+    "format": "text"
+  }
+}

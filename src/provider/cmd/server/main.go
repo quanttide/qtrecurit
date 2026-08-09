@@ -1,0 +1,112 @@
+package main
+
+import (
+	"context"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/quanttide/qtrecurit-provider/internal/api"
+	"github.com/quanttide/qtrecurit-provider/internal/config"
+	"github.com/quanttide/qtrecurit-provider/internal/store"
+)
+
+func main() {
+	cfgPath := os.Getenv("CONFIG_PATH")
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
+	}
+
+	setupLogger(cfg.Log)
+	slog.Info("config loaded", "addr", cfg.Server.Addr, "store", cfg.Store)
+
+	st, err := store.New(cfg.Store)
+	if err != nil {
+		slog.Error("failed to initialize store", "error", err)
+		os.Exit(1)
+	}
+	defer st.Close()
+	slog.Info("store initialized", "driver", cfg.Store.Driver, "path", cfg.Store.Path)
+
+	standardHandler := api.NewStandardHandler(st)
+	candidateHandler := api.NewCandidateHandler(st)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /health", api.Health)
+
+	// 考评标准只读 API（透明公开，无需登录）
+	mux.HandleFunc("GET /api/v1/standards/policies", standardHandler.ListPolicies)
+	mux.HandleFunc("GET /api/v1/standards/policies/{id}", standardHandler.GetPolicy)
+	mux.HandleFunc("GET /api/v1/standards/criteria", standardHandler.ListCriteria)
+	mux.HandleFunc("GET /api/v1/standards/criteria/{id}", standardHandler.GetCriterion)
+	mux.HandleFunc("GET /api/v1/standards/assessments", standardHandler.ListAssessments)
+	mux.HandleFunc("GET /api/v1/standards/assessments/{id}", standardHandler.GetAssessment)
+
+	// 候选人档案 API（内部写入 + 候选人凭查询凭证自查询）
+	mux.HandleFunc("GET /api/v1/candidates", candidateHandler.ListCandidates)
+	mux.HandleFunc("POST /api/v1/candidates", candidateHandler.CreateCandidate)
+	mux.HandleFunc("GET /api/v1/candidates/{id}", candidateHandler.GetCandidate)
+	mux.HandleFunc("PUT /api/v1/candidates/{id}", candidateHandler.UpdateCandidate)
+	mux.HandleFunc("DELETE /api/v1/candidates/{id}", candidateHandler.DeleteCandidate)
+
+	handler := loggingMiddleware(mux)
+
+	srv := &http.Server{Addr: cfg.Server.Addr, Handler: handler}
+
+	go func() {
+		slog.Info("listening", "addr", cfg.Server.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("server error", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	slog.Info("shutting down")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	srv.Shutdown(ctx)
+}
+
+func setupLogger(lc config.LogConfig) {
+	var level slog.Level
+	switch lc.Level {
+	case "debug":
+		level = slog.LevelDebug
+	case "info":
+		level = slog.LevelInfo
+	case "warn":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		level = slog.LevelInfo
+	}
+
+	opts := &slog.HandlerOptions{Level: level}
+
+	var h slog.Handler
+	if lc.Format == "json" {
+		h = slog.NewJSONHandler(os.Stdout, opts)
+	} else {
+		h = slog.NewTextHandler(os.Stdout, opts)
+	}
+	slog.SetDefault(slog.New(h))
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		slog.Info("request", "method", r.Method, "path", r.URL.Path)
+		next.ServeHTTP(w, r)
+		slog.Info("response", "method", r.Method, "path", r.URL.Path, "duration", time.Since(start))
+	})
+}
