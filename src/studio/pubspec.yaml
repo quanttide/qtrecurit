@@ -23,4 +23,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/recommendations.json
+    # mock 数据：本地演示，后续替换为 API
+    - assets/mock/recommendations.json

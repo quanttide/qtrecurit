@@ -1,5 +1,6 @@
 [
   {
+    "_comment": "mock 数据：v0.1 本地演示，非真实推荐信；后续替换为 GET /recommendations/:id",
     "id": "rec_001",
     "recommender": "量潮招聘",
     "candidate": "张同学",
