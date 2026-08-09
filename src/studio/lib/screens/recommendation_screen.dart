@@ -28,7 +28,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   }
 
   Future<Recommendation> _loadRecommendation() async {
-    final raw = await rootBundle.loadString('assets/recommendations.json');
+    final raw = await rootBundle.loadString('assets/mock/recommendations.json');
     final list = jsonDecode(raw) as List<dynamic>;
     final rec = list
         .cast<Map<String, dynamic>>()
