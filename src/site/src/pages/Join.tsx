@@ -1,10 +1,11 @@
-import { positionCategories } from '../data/positions'
+import { positions } from '../data/positions'
 
 function Join() {
   return (
     <>
-      <header>
+      <header className="hero">
         <h1>量潮招聘</h1>
+        <p className="slogan">解放全人类的创造力</p>
         <p className="period">新血液新活力，量潮期待您的加入</p>
       </header>
 
@@ -15,13 +16,18 @@ function Join() {
       </section>
 
       <section className="join-section">
-        <h2>招聘要求</h2>
-        {positionCategories.map((c) => (
-          <div key={c.name} className="position-category">
-            <h3>{c.name}</h3>
-            <p>{c.duty}</p>
-          </div>
-        ))}
+        <h2>招聘岗位</h2>
+        <div className="position-grid">
+          {positions.map((p) => (
+            <div key={p.name} className="position-card">
+              <div className="position-head">
+                <h3>{p.name}</h3>
+                <span className="position-category">{p.category}</span>
+              </div>
+              <p>{p.duty}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="join-section">
