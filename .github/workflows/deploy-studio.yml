@@ -1,10 +1,10 @@
 # 发布 studio：推送 studio/* tag（如 studio/v0.1.0-alpha.1，由 qtcloud-devops release publish 创建）时，
-# 构建 Flutter Web 版，上传到 OSS 发布桶（qtrecurit-studio，IaC 见 manifests/terraform/studio.tf），
-# 并刷新 CDN 缓存。
+# 构建 Flutter Web 版，上传到 OSS 发布桶（IaC 见 manifests/terraform/studio.tf），并刷新 CDN 缓存。
 #
-# 对齐 qtdata 与 qtclass 的 deploy-studio.yml 模式：
-#   studio/* tag → Actions（flutter build web，ossutil cp）→ OSS 桶（qtrecurit-studio，静态网站托管）
-#   → CDN（recurit.quanttide.com，泛域名证书 *.quanttide.com）→ 用户浏览器
+# 模式：studio/* tag → Actions（flutter build web，ossutil cp）→ OSS 桶（静态网站托管）→ CDN → 用户浏览器
+#
+# 部署参数不硬编码在仓库中，来自 repo 级 GitHub variables（gh variable set 配置）：
+#   OSS_BUCKET_STUDIO / OSS_ENDPOINT / CDN_DOMAIN_STUDIO
 #
 # 触发说明：用 tag 精确匹配 studio/ 前缀，避免其他 tag 误触发。
 #
@@ -23,9 +23,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  OSS_BUCKET: qtrecurit-studio
-  OSS_ENDPOINT: oss-cn-hangzhou.aliyuncs.com
-  CDN_DOMAIN: recurit.quanttide.com
+  OSS_BUCKET: ${{ vars.OSS_BUCKET_STUDIO }}
+  OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
+  CDN_DOMAIN: ${{ vars.CDN_DOMAIN_STUDIO }}
 
 jobs:
   build-and-deploy:
