@@ -1,4 +1,4 @@
-export type Category = '技术类' | '产品类' | '市场类' | '职能类'
+export type Category = '技术类' | '产品类' | '市场类' | '职能类' | '管理类'
 
 export interface Position {
   name: string
@@ -26,5 +26,15 @@ export const positions: Position[] = [
     name: '人事经理',
     category: '职能类',
     duty: '负责财务管理、法务管理、人力资源及其他职能支持工作。',
+  },
+  {
+    name: '管理类',
+    category: '管理类',
+    duty: '负责团队管理、制度流程设计与优化、跨部门协作推进等工作。',
+  },
+  {
+    name: '执行助理',
+    category: '管理类',
+    duty: '负责高管日程与会议组织、任务跟踪与落实反馈、重要事项跨部门协调等工作。',
   },
 ]
