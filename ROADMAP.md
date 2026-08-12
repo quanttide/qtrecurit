@@ -66,7 +66,8 @@ Studio 不做内部管理台——对外透明的界面不掺内部操作。候�
 ## 两端分工
 
 - CLI（Rust，已有）：数据采集（邮件拉取、漏斗分析、知识提炼链），结果写入 Provider
+- Site（React，已有）：对外招聘门户——招聘启事（岗位要求、报名方式）与招聘数据公开（投递统计、岗位分布），官网「加入我们」跳转至此，内容与招聘政策同源
 - Studio（Flutter，新建）：候选人的透明窗口，详见 [src/studio/ROADMAP.md](./src/studio/ROADMAP.md)
 - Provider（Go，新建）：数据服务端，详见 [src/provider/ROADMAP.md](./src/provider/ROADMAP.md)
 
-数据流：CLI 采集 → Provider 存储与聚合 → Studio 向候选人透明展示。
+数据流：CLI 采集 → Provider 存储与聚合 → Studio 向候选人透明展示，Site 对外公开招聘信息与数据。
