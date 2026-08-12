@@ -67,8 +67,3 @@
 .position-category p {
   margin-bottom: 4px;
 }
-
-.position-category .hourly-rate {
-  font-weight: 600;
-  color: var(--accent);
-}

@@ -20,7 +20,6 @@ function Join() {
           <div key={c.name} className="position-category">
             <h3>{c.name}</h3>
             <p>{c.duty}</p>
-            <p className="hourly-rate">{c.hourlyRate}</p>
           </div>
         ))}
       </section>
