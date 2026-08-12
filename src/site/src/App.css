@@ -5,6 +5,89 @@
   text-align: left;
 }
 
+/* site nav */
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.site-brand {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-h);
+  text-decoration: none;
+}
+
+.site-links {
+  display: flex;
+  gap: 16px;
+}
+
+.site-links a {
+  font-size: 14px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-links a:hover {
+  color: var(--accent);
+}
+
+/* join page */
+
+.join-section {
+  margin-bottom: 40px;
+}
+
+.join-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--text-h);
+}
+
+.join-section p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.join-section ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.join-section a {
+  color: var(--accent);
+}
+
+.position-category {
+  margin-bottom: 16px;
+}
+
+.position-category h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--text-h);
+}
+
+.position-category p {
+  margin-bottom: 4px;
+}
+
+.position-category .hourly-rate {
+  font-weight: 600;
+  color: var(--accent);
+}
+
 header {
   margin-bottom: 40px;
 }
