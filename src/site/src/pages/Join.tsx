@@ -16,7 +16,7 @@ function Join() {
         </section>
 
         <section id="positions" className="join-section">
-          <h2>招聘岗位</h2>
+          <h2>实习招聘岗位</h2>
           <div className="position-grid">
             {positions.map((p) => (
               <div key={p.name} className="position-card">
