@@ -4,10 +4,8 @@ function Join() {
   return (
     <>
       <header className="hero">
-        <p className="hero-kicker">QuantTide · 实习招聘</p>
-        <h1>量潮招聘</h1>
-        <p className="slogan">解放全人类的创造力</p>
-        <p className="period">新血液新活力，量潮期待您的加入</p>
+        <p className="hero-kicker">量潮招聘 · 实习招募</p>
+        <h1>解放全人类的创造力</h1>
       </header>
 
       <div className="content">
