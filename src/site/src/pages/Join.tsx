@@ -4,7 +4,6 @@ function Join() {
   return (
     <>
       <header className="hero">
-        <p className="hero-kicker">量潮招聘</p>
         <h1>你的创造力，值得被看见</h1>
       </header>
 
