@@ -4,10 +4,10 @@ import Join from './pages/Join'
 import './App.css'
 
 function App() {
-  const [page, setPage] = useState(() => (window.location.hash === '#/join' ? 'join' : 'home'))
+  const [page, setPage] = useState(() => (window.location.hash === '#/dashboard' ? 'dashboard' : 'join'))
 
   useEffect(() => {
-    const onHashChange = () => setPage(window.location.hash === '#/join' ? 'join' : 'home')
+    const onHashChange = () => setPage(window.location.hash === '#/dashboard' ? 'dashboard' : 'join')
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
@@ -17,11 +17,11 @@ function App() {
       <nav className="site-nav">
         <a className="site-brand" href="#/">量潮招聘</a>
         <div className="site-links">
-          <a href="#/">招聘看板</a>
-          <a href="#/join">加入我们</a>
+          <a href="#/">加入我们</a>
+          <a href="#/dashboard">招聘看板</a>
         </div>
       </nav>
-      {page === 'join' ? <Join /> : <Dashboard />}
+      {page === 'dashboard' ? <Dashboard /> : <Join />}
     </div>
   )
 }

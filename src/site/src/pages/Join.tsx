@@ -4,8 +4,8 @@ function Join() {
   return (
     <>
       <header>
-        <h1>加入我们</h1>
-        <p className="period">量潮期待您的加入</p>
+        <h1>量潮招聘</h1>
+        <p className="period">新血液新活力，量潮期待您的加入</p>
       </header>
 
       <section className="join-section">
