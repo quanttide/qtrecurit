@@ -1,8 +1,8 @@
 #!/bin/bash
-# 为 recurit.quanttide.com 配置 CDN HTTPS 证书 + DNS CNAME。
+# 为 recurit.quanttide.com（site 招聘官网）配置 CDN HTTPS 证书 + DNS CNAME。
 #
-# 背景：recurit.quanttide.com 是量潮招聘工作台发布域名，CDN 源站为 OSS 桶 qtrecurit-studio
-# （桶与 ACL 见 manifests/terraform/studio.tf；发布流程见 .github/workflows/deploy-studio.yml）。
+# 背景：recurit.quanttide.com 是量潮招聘官网发布域名，CDN 源站为 OSS 桶 qtrecurit-site
+# （桶与 ACL 见 manifests/terraform/site.tf；发布流程见 .github/workflows/deploy-site.yml）。
 # 证书为 acme.sh 签发的泛域名证书 *.quanttide.com（ZeroSSL），续期后需重跑本脚本更新证书。
 #
 # 前置：本机已登录 aliyun CLI（AK 模式）；acme.sh 证书目录存在。

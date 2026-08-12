@@ -1,0 +1,85 @@
+# 发布 site（招聘官网）：推送 site/* tag（如 site/v0.1.0，由 qtcloud-devops release publish 创建）时，
+# 构建 React 站点，上传到 OSS 发布桶（IaC 见 manifests/terraform/site.tf），并刷新 CDN 缓存。
+#
+# 模式：site/* tag → Actions（npm build，ossutil cp）→ OSS 桶（静态网站托管）→ CDN → 用户浏览器
+#
+# 部署参数不硬编码在仓库中，来自 repo 级 GitHub variables（gh variable set 配置）：
+#   OSS_BUCKET_SITE / OSS_ENDPOINT / CDN_DOMAIN_SITE
+#
+# 触发说明：用 tag 精确匹配 site/ 前缀，避免其他 tag 误触发。
+#
+# 所需 GitHub secrets / variables（org / repo 级）：
+#   - ALIYUN_ACCESS_KEY_ID / ALIYUN_ACCESS_KEY_SECRET（secret）：RAM 用户 AccessKey（OSS 上传 + CDN 刷新）
+
+name: Deploy Site
+
+on:
+  push:
+    tags:
+      - 'site/**'
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: true
+
+env:
+  OSS_BUCKET: ${{ vars.OSS_BUCKET_SITE }}
+  OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
+  CDN_DOMAIN: ${{ vars.CDN_DOMAIN_SITE }}
+
+jobs:
+  build-and-deploy:
+    name: Build Site & Deploy to OSS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: src/site
+        run: npm ci
+
+      - name: Build
+        working-directory: src/site
+        run: npm run build
+
+      - name: Setup ossutil
+        uses: manyuanrong/setup-ossutil@v3.0
+        with:
+          endpoint: ${{ env.OSS_ENDPOINT }}
+          access-key-id: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+
+      - name: Upload Site to OSS（长缓存）
+        working-directory: src/site
+        run: |
+          ossutil cp dist/ oss://${{ env.OSS_BUCKET }}/ -r -f \
+            --exclude "index.html" \
+            --meta "Cache-Control:public,max-age=31536000"
+
+      - name: Upload entry file（no-cache）
+        working-directory: src/site
+        run: |
+          ossutil cp dist/index.html oss://${{ env.OSS_BUCKET }}/index.html -f --meta "Cache-Control:no-cache"
+
+      - name: Refresh CDN
+        run: |
+          pip install aliyun-python-sdk-cdn
+          python -c "
+          from aliyunsdkcore.client import AcsClient
+          from aliyunsdkcdn.request.v20180510.RefreshObjectCachesRequest import RefreshObjectCachesRequest
+          import os
+          cli = AcsClient(os.environ['ALIYUN_ACCESS_KEY_ID'], os.environ['ALIYUN_ACCESS_KEY_SECRET'], 'cn-hangzhou')
+          req = RefreshObjectCachesRequest()
+          req.set_ObjectPath('https://${{ env.CDN_DOMAIN }}/')
+          req.set_ObjectType('Directory')
+          cli.do_action_with_exception(req)
+          "
+        env:
+          ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+          ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
