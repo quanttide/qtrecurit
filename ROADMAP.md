@@ -71,3 +71,13 @@ Studio 不做内部管理台——对外透明的界面不掺内部操作。候�
 - Provider（Go，新建）：数据服务端，详见 [src/provider/ROADMAP.md](./src/provider/ROADMAP.md)
 
 数据流：CLI 采集 → Provider 存储与聚合 → Studio 向候选人透明展示，Site 对外公开招聘信息与数据。
+
+## 平台化方向（2026-08-17 决策）
+
+推荐服务化与多租户平台方向，详见 [推荐服务化产品设计](./docs/dev-guide/recommendation-service-design.md)、[商业需求文档（BRD）](./docs/dev-guide/recommendation-service-brd.md)、[多租户平台架构设计](./docs/dev-guide/multi-tenant-platform-architecture.md)。
+
+- **商业模式**：推荐是服务不是卖信用；付费与推荐结果隔离；按交付收费不按结果收费；企业是资源方（永远免费），收入来自候选人端（课堂学费 + 推荐服务费）
+- **多租户平台**：人事云（qtcloud-human）升级为多租户后端；qtrecurit 是样板租户（dogfooding）；企业客户拥有品牌化招聘前台（`{tenant}.jobs.quanttide.com`），使用量潮 AI 初筛与信用背书服务
+- **历史数据复用**：量潮历史招聘数据是平台冷启动资产——AI 初筛校准集（标注闭环：投递→筛选→结果→入职表现）、初始信用档案、筛选标准模板库
+- **前端改造**：Site 去静态化并多租户化（见 [Site ROADMAP](./src/site/ROADMAP.md)）；Studio 推荐信真实化 + 凭证查询 + 授权管理（见 [Studio ROADMAP](./src/studio/ROADMAP.md)）
+- **边界**：人事云提供 HR 领域通用能力（档案、筛选、评估、推荐信模块）；量潮背书状态与推荐决策是 qtrecurit 商业数据，与人事云客户数据隔离
