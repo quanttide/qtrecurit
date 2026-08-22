@@ -1,53 +1,44 @@
-import { useState } from 'react'
+import { HashRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Home from './pages/Home'
 import Intern from './pages/Intern'
 import Parttime from './pages/Parttime'
 import './App.css'
 
-type View = 'home' | 'intern' | 'parttime'
-
-const NAV: { key: View; label: string }[] = [
-  { key: 'home', label: '首页' },
-  { key: 'intern', label: '实习' },
-  { key: 'parttime', label: '兼职' },
-]
-
+// 用 HashRouter：静态托管 + 无 SPA 回退时，/#/intern、/#/parttime 可独立访问且刷新不 404。
 function App() {
-  const [view, setView] = useState<View>('home')
-
   return (
-    <div className="app">
-      <nav className="site-nav">
-        <div className="nav-inner">
-          <a className="site-brand" href="#/">量潮招聘</a>
-          <div className="site-links">
-            {NAV.map((item) => (
-              <a
-                key={item.key}
-                href={`#${item.key}`}
-                className={view === item.key ? 'active' : ''}
-                onClick={(e) => {
-                  e.preventDefault()
-                  setView(item.key)
-                }}
-              >
-                {item.label}
-              </a>
-            ))}
+    <HashRouter>
+      <div className="app">
+        <nav className="site-nav">
+          <div className="nav-inner">
+            <a className="site-brand" href="#/">量潮招聘</a>
+            <div className="site-links">
+              <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
+                首页
+              </NavLink>
+              <NavLink to="/intern" className={({ isActive }) => (isActive ? 'active' : '')}>
+                实习
+              </NavLink>
+              <NavLink to="/parttime" className={({ isActive }) => (isActive ? 'active' : '')}>
+                兼职
+              </NavLink>
+            </div>
           </div>
+        </nav>
+
+        <header className="hero">
+          <h1>你的创造力，值得被看见</h1>
+        </header>
+
+        <div className="content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/intern" element={<Intern />} />
+            <Route path="/parttime" element={<Parttime />} />
+          </Routes>
         </div>
-      </nav>
-
-      <header className="hero">
-        <h1>你的创造力，值得被看见</h1>
-      </header>
-
-      <div className="content">
-        {view === 'home' && <Home />}
-        {view === 'intern' && <Intern />}
-        {view === 'parttime' && <Parttime />}
       </div>
-    </div>
+    </HashRouter>
   )
 }
 
