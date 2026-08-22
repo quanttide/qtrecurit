@@ -1,6 +1,6 @@
 export type Employment = '实习' | '兼职'
 
-export type Category = '技术类' | '产品类' | '市场类' | '职能类' | '管理类' | '销售类'
+export type Category = '技术类' | '产品类' | '市场类' | '职能类' | '管理类'
 
 export interface Position {
   name: string
@@ -45,7 +45,7 @@ export const positions: Position[] = [
   {
     name: '销售',
     employment: '兼职',
-    category: '销售类',
+    category: '市场类',
     duty: '负责销售量潮的全部定制服务——量潮数据（数据采集/清洗/精炼）、量潮课堂（大数据课程/一对一）、量潮咨询（创新/创业咨询）。拓展客户、获取线索或促成成交，按客户实际付款比例分成。',
   },
 ]

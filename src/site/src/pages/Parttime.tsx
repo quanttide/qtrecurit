@@ -6,7 +6,7 @@ function Parttime() {
   return (
     <>
       <section className="join-section">
-        <h2>兼职 · 销售</h2>
+        <h2>兼职</h2>
         {sales && (
           <div className="position-card">
             <div className="position-head">
