@@ -4,8 +4,9 @@
 
 ### 变更
 
-- 实习、兼职独立成路由：`/#/intern`、`/#/parttime`（HashRouter，静态托管下可独立访问/刷新）
+- 实习、兼职独立成路由：`/intern`、`/parttime`（HistoryRouter / BrowserRouter）
 - 导航切换改为路由（首页 / 实习 / 兼职）
+- OSS 静态托管 `error_document` 改为 `index.html`，支撑 SPA 子路由回落（`manifests/terraform/site.tf`）
 
 
 ## [0.1.0-beta.3] - 2026-08-22

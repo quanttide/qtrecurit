@@ -8,10 +8,10 @@
 resource "alicloud_oss_bucket" "site" {
   bucket = "qtrecurit-site"
 
-  # 静态网站托管（Web 版入口 index.html）
+  # 静态网站托管（Web 版入口 index.html；子路由回落 index.html，支撑 SPA BrowserRouter）
   website {
     index_document = "index.html"
-    error_document = "404.html"
+    error_document = "index.html"
   }
 }
 

@@ -1,17 +1,18 @@
-import { HashRouter, Routes, Route, NavLink } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Home from './pages/Home'
 import Intern from './pages/Intern'
 import Parttime from './pages/Parttime'
 import './App.css'
 
-// 用 HashRouter：静态托管 + 无 SPA 回退时，/#/intern、/#/parttime 可独立访问且刷新不 404。
+// BrowserRouter（History 路由）：/intern、/parttime 独立 URL。
+// 静态托管子路由回落：OSS 桶 error_document 已改为 index.html（见 manifests/terraform/site.tf）。
 function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <div className="app">
         <nav className="site-nav">
           <div className="nav-inner">
-            <a className="site-brand" href="#/">量潮招聘</a>
+            <a className="site-brand" href="/">量潮招聘</a>
             <div className="site-links">
               <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
                 首页
@@ -38,7 +39,7 @@ function App() {
           </Routes>
         </div>
       </div>
-    </HashRouter>
+    </BrowserRouter>
   )
 }
 
