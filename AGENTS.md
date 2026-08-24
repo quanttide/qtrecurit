@@ -7,6 +7,13 @@
 1. **不删除已发布的版本**：如果发布过程中出现问题，不要删除已创建的标签或 Release，而是创建新版本继续发布
 2. **标签格式**：CLI 发布使用 `cli/vX.Y.Z-qualifier` 格式（如 `cli/v0.1.0-rc.1`）
 3. **预发布版本**：使用 `-alpha.N`、`-beta.N`、`-rc.N` 后缀标识预发布版本
+4. **不等待 CI/CD**：CI/CD 完成构建后，如未自动创建 Release，立即手动创建，不等待
+5. **Release 创建命令**：
+   ```bash
+   cd src/cli
+   NOTES=$(sed -n "/^## \[${VERSION#v}\]/,/^## \[/p" CHANGELOG.md | sed '1d;$d')
+   gh release create cli/${VERSION} --title "cli/${VERSION}" --notes "$NOTES" --repo quanttide/qtrecurit
+   ```
 
 ### 提交纪律
 
