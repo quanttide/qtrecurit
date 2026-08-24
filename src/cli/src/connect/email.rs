@@ -610,6 +610,31 @@ pub fn move_message_to_folder(message_id: &str, folder_id: &str, dry_run: bool) 
     Ok(())
 }
 
+/// 标注邮件为已读（移除 UNREAD 标签）
+pub fn mark_as_read(message_id: &str, dry_run: bool) -> Result<()> {
+    let data = serde_json::json!({
+        "remove_label_ids": ["UNREAD"]
+    });
+    let data_str = data.to_string();
+    
+    let args = vec![
+        "mail", "user_mailbox.messages", "modify",
+        "--message-id", message_id,
+        "--user-mailbox-id", "hr@quanttide.com",
+        "--data", &data_str,
+        "--as", "user",
+        "--format", "json",
+    ];
+    
+    if dry_run {
+        eprintln!("[dry-run] lark-cli {}", args.join(" "));
+        return Ok(());
+    }
+    
+    let _output = run_lark_raw(&args)?;
+    Ok(())
+}
+
 /// 验证邮件是否成功发送，返回验证结果
 pub fn verify_sent_mail(to: &str, subject: &str) -> Result<VerifyResult> {
     let data: Value = run_lark_json(&[
@@ -912,5 +937,14 @@ mod tests {
     fn test_extract_page_token_empty_string() {
         let data: Value = serde_json::json!({"page_token": ""});
         assert!(extract_page_token(&data).is_none());
+    }
+
+    // ── mark_as_read ──
+
+    #[test]
+    fn test_mark_as_read_dry_run() {
+        // dry_run 模式不会实际调用 API，只打印命令
+        let result = mark_as_read("test-message-id", true);
+        assert!(result.is_ok());
     }
 }

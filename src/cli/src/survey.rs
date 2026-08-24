@@ -7,7 +7,7 @@
 use anyhow::Result;
 use clap::Args;
 
-use crate::connect::{cache, email::{send_mail, find_candidate_submission, move_message_to_folder, verify_sent_mail}};
+use crate::connect::{cache, email::{send_mail, find_candidate_submission, move_message_to_folder, verify_sent_mail, mark_as_read}};
 use crate::templates::{self, render_template};
 
 #[derive(Args)]
@@ -60,13 +60,13 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
         ],
     );
 
-    let (_id, sent) = send_mail(
+    let (msg_id, sent) = send_mail(
         &args.to,
         &tpl.subject,
         &body,
         None,
         "survey",
-        false,
+        true,
         args.dry_run,
     )?;
 
@@ -78,8 +78,15 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
         "draft".to_string()
     };
     
-    // 验证发送结果
+    // 验证发送结果并标注已读
     if sent && !args.dry_run {
+        // 标注已发送的问卷邮件为已读
+        if !msg_id.is_empty() {
+            if let Err(e) = mark_as_read(&msg_id, false) {
+                eprintln!("警告: 标注已读失败: {e:#}");
+            }
+        }
+        
         match verify_sent_mail(&args.to, &tpl.subject) {
             Ok(result) => {
                 if result.success {
