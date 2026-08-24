@@ -1,13 +1,11 @@
-//! 凭证化人才推荐：生成凭证号 → 推荐信 → 发送 → 写台账。
+//! 凭证化人才推荐：生成凭证号 → 推荐信 → 发送。
 //!
-//! 招聘域业务命令（动词命名）：一个命令完成一个完整业务动作。
-//! 发送经 connect::email::send_mail 通道（发送日志由通道内部处理），
-//! 台账（referrals.csv）归招聘数据。
+//! 无状态命令：凭证号仅出现在推荐信与输出中，不持久化（推荐记录待 Provider 关联）。
+//! 发送经 connect::email::send_mail 通道（发送日志由通道内部处理）。
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use chrono::Local;
 use clap::Args;
-use std::path::PathBuf;
 
 use crate::connect::email::send_mail;
 
@@ -24,10 +22,6 @@ pub struct ReferArgs {
     /// 目标企业名
     #[arg(long)]
     pub company: String,
-
-    /// 台账 CSV 路径（默认 $REFERRAL_CSV 或 data/referral/referrals.csv）
-    #[arg(long)]
-    pub csv: Option<String>,
 
     /// 确认后直接发送（默认只生成草稿）
     #[arg(long)]
@@ -62,33 +56,6 @@ pub fn build_referral_body(name: &str, company: &str, code: &str) -> String {
     )
 }
 
-/// 默认台账路径
-pub fn default_csv_path() -> PathBuf {
-    std::env::var("REFERRAL_CSV")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("data/referral/referrals.csv"))
-}
-
-/// 追加一行台账（fail-closed：写入失败不静默）
-pub fn append_referral_csv(csv: Option<&str>, row: &[&str]) -> Result<()> {
-    let path = match csv {
-        Some(c) => PathBuf::from(c),
-        None => default_csv_path(),
-    };
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).context("创建台账目录失败")?;
-    }
-    let line = row.join(",");
-    use std::io::Write;
-    let mut f = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)
-        .context("打开台账失败")?;
-    writeln!(f, "{}", line).context("写入台账失败")?;
-    Ok(())
-}
-
 pub fn run(args: &ReferArgs) -> Result<()> {
     let now = Local::now();
     let seq = (now.timestamp() % 1000) as u32;
@@ -108,11 +75,11 @@ pub fn run(args: &ReferArgs) -> Result<()> {
         &subject,
         &body,
         None,
-        "referral",
+        "refer",
         args.confirm_send,
         args.dry_run,
     )
-    .context("发送推荐信失败")?;
+    .map_err(|e| anyhow::anyhow!("发送推荐信失败: {e:#}"))?;
 
     let status = if args.dry_run {
         "dry-run".to_string()
@@ -133,24 +100,6 @@ pub fn run(args: &ReferArgs) -> Result<()> {
         code,
         status
     );
-
-    // 回写台账（发送动作与台账联动，fail-closed）
-    if !args.dry_run {
-        let row = [
-            &code,
-            &now.format("%Y-%m-%d").to_string(),
-            &args.name,
-            &args.candidate_email,
-            &args.company,
-            "",
-            "",
-            &status,
-            "",
-        ];
-        append_referral_csv(args.csv.as_deref(), &row)
-            .context("台账写入失败（fail-closed，不会假装成功）")?;
-        println!("✓ 台账已更新");
-    }
     Ok(())
 }
 
@@ -190,48 +139,5 @@ mod tests {
         assert!(!body.contains("责任心评级"));
         assert!(!body.contains("配合度"));
         assert!(body.contains("材料真实"));
-    }
-
-    #[test]
-    fn test_referral_csv_append() {
-        let tmp = std::env::temp_dir().join(format!("referral-csv-{}", std::process::id()));
-        std::fs::create_dir_all(&tmp).unwrap();
-        let csv = tmp.join("referrals.csv");
-        // 先写表头
-        std::fs::write(
-            &csv,
-            "凭证号,日期,候选人,候选人邮箱,企业,岗位,推荐理由摘要,结果,企业反馈\n",
-        )
-        .unwrap();
-
-        let row = [
-            "REF-1",
-            "2026-08-22",
-            "张三",
-            "wu@example.com",
-            "示例企业",
-            "",
-            "",
-            "draft",
-            "",
-        ];
-        append_referral_csv(Some(csv.to_str().unwrap()), &row).unwrap();
-
-        let content = std::fs::read_to_string(&csv).unwrap();
-        assert!(content.contains("REF-1"));
-        assert!(content.contains("wu@example.com"));
-        assert_eq!(content.lines().count(), 2);
-
-        std::fs::remove_dir_all(&tmp).ok();
-    }
-
-    #[test]
-    fn test_default_csv_path() {
-        // SAFETY: 测试环境单线程，无并发读环境变量
-        unsafe { std::env::remove_var("REFERRAL_CSV") };
-        assert_eq!(
-            default_csv_path(),
-            PathBuf::from("data/referral/referrals.csv")
-        );
     }
 }

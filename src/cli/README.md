@@ -22,7 +22,7 @@ qtrecurit report
 qtrecurit report --days 30
 qtrecurit report --start 2026-06-01 --end 2026-06-30
 
-# 凭证化人才推荐（凭证号 REF-YYYYMMDD-NNN → 推荐信 → 草稿 → 确认 → 发送 → 台账）
+# 凭证化人才推荐（凭证号 REF-YYYYMMDD-NNN → 推荐信 → 草稿 → 确认 → 发送，无状态不落库）
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --confirm-send
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
