@@ -555,6 +555,103 @@ pub fn resolve_date_range(
     (Some(start), Some(now))
 }
 
+// ── 投递邮件搜索与归档 ─────────────────────────────────────────────
+
+/// 搜索候选人邮箱对应的投递邮件，返回最新的 message_id
+pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
+    let data: Value = run_lark_json(&[
+        "mail", "+triage",
+        "--mailbox", "hr@quanttide.com",
+        "--max", "20",
+        "--format", "json",
+    ])?;
+    
+    let messages = data["messages"]
+        .as_array()
+        .context("无法解析邮件列表")?;
+    
+    // 从发件人邮箱匹配候选人的投递邮件
+    for msg in messages {
+        if let Some(from) = msg["from"].as_str() {
+            if from == email {
+                if let Some(message_id) = msg["message_id"].as_str() {
+                    return Ok(Some(message_id.to_string()));
+                }
+            }
+        }
+    }
+    
+    Ok(None)
+}
+
+/// 移动邮件到指定文件夹
+pub fn move_message_to_folder(message_id: &str, folder_id: &str, dry_run: bool) -> Result<()> {
+    let data = serde_json::json!({
+        "add_folder": folder_id
+    });
+    let data_str = data.to_string();
+    
+    let args = vec![
+        "mail", "user_mailbox.messages", "modify",
+        "--message-id", message_id,
+        "--user-mailbox-id", "hr@quanttide.com",
+        "--data", &data_str,
+        "--as", "user",
+        "--format", "json",
+    ];
+    
+    if dry_run {
+        eprintln!("[dry-run] lark-cli {}", args.join(" "));
+        return Ok(());
+    }
+    
+    let _output = run_lark_raw(&args)?;
+    Ok(())
+}
+
+/// 验证邮件是否成功发送，返回验证结果
+pub fn verify_sent_mail(to: &str, subject: &str) -> Result<VerifyResult> {
+    let data: Value = run_lark_json(&[
+        "mail", "+triage",
+        "--mailbox", "hr@quanttide.com",
+        "--filter", r#"{"folder":"SENT"}"#,
+        "--max", "10",
+        "--format", "json",
+    ])?;
+    
+    let messages = data["messages"]
+        .as_array()
+        .context("无法解析邮件列表")?;
+    
+    for msg in messages {
+        let msg_subject = msg["subject"].as_str().unwrap_or("");
+        let msg_to = msg["to"].as_str().unwrap_or("");
+        let message_id = msg["message_id"].as_str().unwrap_or("");
+        
+        if msg_subject == subject && msg_to == to {
+            return Ok(VerifyResult {
+                success: true,
+                message_id: message_id.to_string(),
+                message: format!("邮件已发送，message_id: {}", message_id),
+            });
+        }
+    }
+    
+    Ok(VerifyResult {
+        success: false,
+        message_id: String::new(),
+        message: "未在已发送邮件中找到匹配的邮件".to_string(),
+    })
+}
+
+/// 邮件验证结果
+#[derive(Debug)]
+pub struct VerifyResult {
+    pub success: bool,
+    pub message_id: String,
+    pub message: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

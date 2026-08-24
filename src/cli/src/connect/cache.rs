@@ -63,6 +63,64 @@ pub fn clear_survey_url() -> Result<()> {
     Ok(())
 }
 
+// ── 文件夹 ID 缓存 ────────────────────────────────────────────────
+
+/// 读取缓存的文件夹 ID
+pub fn get_folder_id(name: &str) -> Option<String> {
+    let path = cache_dir().ok()?.join(format!("folder_{}", name));
+    fs::read_to_string(&path)
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+/// 写入文件夹 ID 到缓存
+pub fn set_folder_id(name: &str, id: &str) -> Result<()> {
+    let dir = ensure_cache_dir()?;
+    let path = dir.join(format!("folder_{}", name));
+    fs::write(&path, id)
+        .context(format!("写入缓存失败: {}", path.display()))?;
+    Ok(())
+}
+
+/// 清除文件夹 ID 缓存
+pub fn clear_folder_id(name: &str) -> Result<()> {
+    let path = cache_dir()?.join(format!("folder_{}", name));
+    if path.exists() {
+        fs::remove_file(&path)
+            .context(format!("删除缓存失败: {}", path.display()))?;
+    }
+    Ok(())
+}
+
+/// 从 HR 邮箱获取指定名称的文件夹 ID
+pub fn fetch_folder_id_from_email(name: &str) -> Result<String> {
+    use super::email::run_lark_json;
+    use serde_json::Value;
+    
+    let data: Value = run_lark_json(&[
+        "mail", "user_mailbox.folders", "list",
+        "--user-mailbox-id", "hr@quanttide.com",
+        "--format", "json",
+    ])?;
+    
+    let folders = data["data"]["items"]
+        .as_array()
+        .context("无法解析文件夹列表")?;
+    
+    for folder in folders {
+        if let Some(folder_name) = folder["name"].as_str() {
+            if folder_name == name {
+                if let Some(id) = folder["id"].as_str() {
+                    return Ok(id.to_string());
+                }
+            }
+        }
+    }
+    
+    anyhow::bail!("未找到名为 '{}' 的文件夹", name)
+}
+
 /// 从 HR 邮箱获取最新的问卷链接
 pub fn fetch_survey_url_from_email() -> Result<String> {
     use super::email::run_lark_json;

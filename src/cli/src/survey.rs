@@ -7,7 +7,7 @@
 use anyhow::Result;
 use clap::Args;
 
-use crate::connect::{cache, email::send_mail};
+use crate::connect::{cache, email::{send_mail, find_candidate_submission, move_message_to_folder, verify_sent_mail}};
 use crate::templates::{self, render_template};
 
 #[derive(Args)]
@@ -77,19 +77,65 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
     } else {
         "draft".to_string()
     };
-    println!(
-        "{} 收件人: {} | 模板: survey | 状态: {}",
-        if args.dry_run {
-            "[dry-run]"
-        } else if sent {
-            "✓ 已发送"
-        } else {
-            "✓ 已生成草稿"
-        },
-        args.to,
-        status
-    );
+    
+    // 验证发送结果
+    if sent && !args.dry_run {
+        match verify_sent_mail(&args.to, &tpl.subject) {
+            Ok(result) => {
+                if result.success {
+                    println!("✓ 已发送 | 收件人: {} | {}", args.to, result.message);
+                } else {
+                    println!("⚠ 已发送但无法验证 | 收件人: {} | {}", args.to, result.message);
+                }
+            }
+            Err(e) => {
+                println!("✓ 已发送 | 收件人: {} | 验证失败: {}", args.to, e);
+            }
+        }
+    } else if args.dry_run {
+        println!("[dry-run] 收件人: {} | 模板: survey | 状态: {}", args.to, status);
+    } else {
+        println!("✓ 已生成草稿 | 收件人: {} | 模板: survey", args.to);
+    }
+    
+    // 归档候选人的投递邮件到「已发送问卷」文件夹
+    if sent && !args.dry_run {
+        if let Err(e) = archive_candidate_submission(&args.to) {
+            eprintln!("警告: 归档投递邮件失败: {e:#}");
+        }
+    }
+    
     Ok(())
+}
+
+/// 归档候选人的投递邮件到「已发送问卷」文件夹
+fn archive_candidate_submission(candidate_email: &str) -> Result<()> {
+    // 获取文件夹 ID
+    let folder_id = cache::get_folder_id("已发送问卷")
+        .or_else(|| {
+            eprintln!("缓存未命中，正在获取已发送问卷文件夹 ID...");
+            cache::fetch_folder_id_from_email("已发送问卷").ok().map(|id| {
+                if let Err(e) = cache::set_folder_id("已发送问卷", &id) {
+                    eprintln!("警告: 缓存文件夹 ID 失败: {}", e);
+                }
+                id
+            })
+        })
+        .ok_or_else(|| anyhow::anyhow!("无法获取已发送问卷文件夹 ID"))?;
+    
+    // 搜索候选人的投递邮件
+    match find_candidate_submission(candidate_email)? {
+        Some(message_id) => {
+            eprintln!("正在归档投递邮件: {}", message_id);
+            move_message_to_folder(&message_id, &folder_id, false)?;
+            eprintln!("✓ 投递邮件已归档到已发送问卷文件夹");
+            Ok(())
+        }
+        None => {
+            eprintln!("未找到候选人 {} 的投递邮件", candidate_email);
+            Ok(())
+        }
+    }
 }
 
 #[cfg(test)]

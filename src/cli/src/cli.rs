@@ -35,6 +35,33 @@ pub enum CacheAction {
     ShowSurvey,
     /// 清除问卷链接缓存
     ClearSurvey,
+    /// 刷新文件夹 ID 缓存（从 HR 邮箱获取最新 ID）
+    RefreshFolderId(RefreshFolderIdArgs),
+    /// 查看当前缓存的文件夹 ID
+    ShowFolderId(ShowFolderIdArgs),
+    /// 清除文件夹 ID 缓存
+    ClearFolderId(ClearFolderIdArgs),
+}
+
+#[derive(Args)]
+pub struct RefreshFolderIdArgs {
+    /// 文件夹名称（如：sent-survey）
+    #[arg(long)]
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct ShowFolderIdArgs {
+    /// 文件夹名称（如：sent-survey）
+    #[arg(long)]
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct ClearFolderIdArgs {
+    /// 文件夹名称（如：sent-survey）
+    #[arg(long)]
+    pub name: String,
 }
 
 #[derive(Args)]
@@ -92,6 +119,42 @@ pub fn run() {
                     return;
                 }
                 println!("✓ 问卷链接缓存已清除");
+                Ok(())
+            }
+            CacheAction::RefreshFolderId(args) => {
+                eprintln!("正在从 HR 邮箱获取文件夹 '{}' 的 ID...", args.name);
+                match crate::connect::cache::fetch_folder_id_from_email(&args.name) {
+                    Ok(id) => {
+                        if let Err(e) = crate::connect::cache::set_folder_id(&args.name, &id) {
+                            eprintln!("警告: 缓存文件夹 ID 失败: {}", e);
+                        }
+                        println!("✓ 文件夹 ID 已更新: {}", id);
+                        Ok(())
+                    }
+                    Err(e) => {
+                        eprintln!("获取文件夹 ID 失败: {e:#}");
+                        Err(e)
+                    }
+                }
+            }
+            CacheAction::ShowFolderId(args) => {
+                match crate::connect::cache::get_folder_id(&args.name) {
+                    Some(id) => {
+                        println!("{}", id);
+                        Ok(())
+                    }
+                    None => {
+                        eprintln!("缓存中没有文件夹 '{}' 的 ID。请运行 'qtrecurit cache refresh-folder-id --name {}' 获取。", args.name, args.name);
+                        Ok(())
+                    }
+                }
+            }
+            CacheAction::ClearFolderId(args) => {
+                if let Err(e) = crate::connect::cache::clear_folder_id(&args.name) {
+                    eprintln!("清除缓存失败: {}", e);
+                    return;
+                }
+                println!("✓ 文件夹 '{}' 的 ID 缓存已清除", args.name);
                 Ok(())
             }
         },
