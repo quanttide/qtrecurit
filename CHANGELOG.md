@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0-beta.4] - 2026-08-25
+
+### Fixed
+
+- 修复版本号不匹配问题（Cargo.toml 与 tag）
+
 ## [0.1.0-beta.3] - 2026-08-25
 
 ### Refactor
