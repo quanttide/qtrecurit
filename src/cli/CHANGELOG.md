@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [0.1.0-alpha.3] - 2026-08-24
+
+### Added
+
+- CI: `release-cli` 工作流照抄 qtcloud-devops 结构（check → 三平台构建 → `cargo publish` crates.io），tag `cli/*` 触发
+
+### Changed
+
+- 清理 `connect/email.rs` 未用导入
+- CI 版本/CHANGELOG 校验脚本落地（`scripts/validate-version.sh` / `validate-changelog.sh`）
+
+### Removed
+
+- 无
+
 ## [0.1.0-alpha.2] - 2026-08-24
 
 ### Added
