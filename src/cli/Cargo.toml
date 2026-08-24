@@ -1,11 +1,19 @@
 [package]
-name = "qtrecurit_cli"
-version = "0.0.1"
+name = "qtrecurit-cli"
+version = "0.1.0-alpha.1"
 edition = "2024"
+description = "量潮招聘云命令行工具"
+authors = ["QuantTide <opensource@quanttide.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/quanttide/qtrecurit"
 
 [[bin]]
 name = "qtrecurit"
 path = "src/main.rs"
+
+[lib]
+name = "qtrecurit_cli"
+path = "src/lib.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
@@ -21,6 +29,3 @@ quanttide-agent = "0.1.0"
 assert_cmd = "2"
 predicates = "3"
 tempfile = "3"
-[lib]
-name = "qtrecurit_cli"
-path = "src/lib.rs"
