@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread;
@@ -767,7 +767,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let base = format!("{}/new_dir", dir.path().to_str().unwrap());
         ensure_data_dir(&base);
-        assert!(Path::new(&base).exists());
+        assert!(std::path::Path::new(&base).exists());
     }
 
     // ── extract_messages / extract_page_token ──

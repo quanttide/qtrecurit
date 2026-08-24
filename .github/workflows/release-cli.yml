@@ -28,9 +28,9 @@ jobs:
           VERSION="${{ steps.version.outputs.value }}"
           ./scripts/validate-changelog.sh "${VERSION#v}"
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          "-D warnings": false
       - name: run tests
+        env:
+          RUSTFLAGS: "-A warnings"
         run: cargo test
 
   build-binaries:
@@ -58,6 +58,8 @@ jobs:
         with:
           target: ${{ matrix.target }}
       - name: build binary
+        env:
+          RUSTFLAGS: "-A warnings"
         run: cargo build --release --target ${{ matrix.target }}
       - name: upload binary
         uses: actions/upload-artifact@v5
