@@ -26,27 +26,7 @@ CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人�
 | `--to` | 是 | 候选人邮箱地址 |
 | `--name` | 是 | 候选人姓名 |
 | `--link` | 是 | 准入问卷链接 |
-| `--confirm-send` | 否 | 加上此参数后直接发送邮件（默认只生成草稿） |
 | `--dry-run` | 否 | 只打印将执行的 `lark-cli` 命令，不实际执行 |
-
-### 默认行为：生成草稿
-
-不加 `--confirm-send` 时，CLI 会调用 `lark-cli mail +send` 生成一封草稿邮件，但**不会自动发送**。你可以先在飞书中检查草稿内容，确认无误后再手动发送或重新执行命令并加上 `--confirm-send`。
-
-```bash
-# 1. 先生成草稿，检查内容
-qtrecurit access survey \
-  --to candidate@example.com \
-  --name 张三 \
-  --link https://survey.quanttide.com/abc123
-
-# 2. 确认无误后，直接发送
-qtrecurit access survey \
-  --to candidate@example.com \
-  --name 张三 \
-  --link https://survey.quanttide.com/abc123 \
-  --confirm-send
-```
 
 ### 预览命令（dry-run）
 
@@ -63,7 +43,7 @@ qtrecurit access survey \
 输出示例：
 
 ```
-[dry-run] lark-cli mail +send --to candidate@example.com --subject 量潮科技准入问卷 --body 张三你好... --mailbox hr@quanttide.com --confirm-send --as user --format json
+[dry-run] lark-cli mail +send --to candidate@example.com --subject 量潮科技准入问卷 --body 张三你好... --mailbox hr@quanttide.com --as user --format json
 ```
 
 ## 邮件内容
@@ -86,7 +66,7 @@ qtrecurit access survey \
 
 **Q: 邮件没有发出去？**
 
-默认行为是生成草稿而非直接发送。加上 `--confirm-send` 参数才会实际发送。
+检查 `lark-cli` 的认证状态，运行 `lark-cli mail +send --help` 查看详细参数。
 
 **Q: 想修改邮件话术？**
 
