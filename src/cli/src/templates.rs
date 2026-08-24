@@ -1,19 +1,29 @@
-//! 模板渲染机制（关键机制）+ 招聘沟通话术内容。
+//! 模板渲染机制 + 话术内容加载。
+//!
+//! 话术模板存储在 `templates/` 目录下的文本文件中，格式为：
+//! - 第一行：邮件主题
+//! - 其余行：邮件正文
 //!
 //! 内容严格照业务实体手册 `quanttide-handbook-of-business-entity`
 //! `qtrecurit/connect/content.md`（工作流沟通内容，最新版）。
+
+use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
+
+use once_cell::sync::Lazy;
 
 #[derive(Debug, Clone)]
 pub struct MailTemplate {
     pub name: &'static str,
     pub description: &'static str,
-    pub subject: &'static str,
-    pub body: &'static str,
+    pub subject: String,
+    pub body: String,
 }
 
 /// 模板变量替换：{{key}} → value
 pub fn render_template(template: &MailTemplate, vars: &[(String, String)]) -> String {
-    let mut body = template.body.to_string();
+    let mut body = template.body.clone();
     for (k, v) in vars {
         body = body.replace(&format!("{{{{{}}}}}", k), v);
     }
@@ -33,72 +43,77 @@ pub fn parse_vars(raw: Option<&str>) -> Vec<(String, String)> {
     out
 }
 
-// ── 话术内容（源自业务实体手册 qtrecurit/connect/content.md）────────────
+// ── 模板加载 ────────────────────────────────────────────────────────
 
-pub const TEMPLATES: &[MailTemplate] = &[
-    MailTemplate {
-        name: "survey",
-        description: "准入问卷发放：候选人投递后，进入筛选流程前",
-        subject: "量潮科技准入问卷",
-        body: r#"{{name}}你好，感谢你对量潮科技的关注与投递。在继续招聘流程之前，请先完成以下准入问卷：{{link}}
-
-问卷大约需要15-20分钟，请基于真实想法认真作答。这是进入筛选流程的必要条件。未在3个工作日内提交的，申请将被视为未完成。仅提醒一次。
-
-量潮科技HR"#,
-    },
-    MailTemplate {
-        name: "invite",
-        description: "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地",
-        subject: "量潮实训基地邀请",
-        body: r#"{{name}}你好，感谢你完成量潮科技的准入问卷。经评估，你已通过初筛，正式受邀加入量潮实训基地。
-
-实训基地是量潮科技对外招聘考核的组成部分。你将在这里通过完成真实的工作任务接受考核，以实际产出代替答卷。
-
-请扫码加入实训基地群（见附件二维码），进群后修改昵称为「{{name}}-岗位意向」。
-
-具体考核规则将在群内发布，请关注群公告和资料。
-
-期待在基地见到你。
-
-量潮科技 招聘团队"#,
-    },
-    MailTemplate {
-        name: "exam",
-        description: "笔试：发送笔试邀请，候选人以实际成果参与考核",
-        subject: "量潮招聘考核邀请",
-        body: r#"你好，
-
-我们认真看了你此前提交的材料及招聘流程中的整体表现，认为你目前展现出的能力和潜力符合量潮进一步招聘考核的要求，因此想邀请你直接参与招聘考核，也想先听听你的想法和意愿。
-
-量潮目前的人才选拔以实际成果为核心，考核标准是：在相对开放的环境中，自主发现并提出有价值的问题，通过自己的方式创造实际成果。我们的考核不会以固定题目为主，而是希望你真正创造一个东西，以过程和产出作为判断依据。
-
-如果你暂时不适合这种方式，也可以选择实训等其他培养路径，通过阶段化任务逐步积累能力。
-
-需要提前说明的是，通过招聘考核代表你达到了进入量潮团队的人才选拔标准，但最终是否进入团队，还要看届时公司的岗位和项目情况。如果暂时没有合适岗位，我们也会优先考虑让你进入长期实训，或保留后续合作的可能。
-
-如果你愿意参与招聘考核，可以直接回复我们，确认意愿后，我们会与你沟通具体考核方式和下一步安排。如果你希望先通过实训参与量潮，或者暂时不打算继续任何后续安排，也可以直接告诉我们。
-
-期待你的回复。"#,
-    },
-    MailTemplate {
-        name: "interview",
-        description: "面试通知：筛选/考核通过后，安排面试",
-        subject: "量潮面试通知",
-        body: r#"{{name}}你好，我是量潮科技的HR，感谢你应聘我司的{{position}}。
-
-面试时间：{{time}}
-面试形式：飞书线上面试
-
-面试主要围绕你此前提交的材料与实际成果展开，期待与你深入交流。
-
-如有任何问题，请随时与我联系。期待你的表现！
-
-量潮科技 HR"#,
-    },
+/// 模板描述信息（编译时已知，运行时加载内容）
+const TEMPLATE_DESCRIPTIONS: &[(&str, &str)] = &[
+    ("survey", "准入问卷发放：候选人投递后，进入筛选流程前"),
+    ("invite", "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地"),
+    ("exam", "笔试：发送笔试邀请，候选人以实际成果参与考核"),
+    ("interview", "面试通知：筛选/考核通过后，安排面试"),
 ];
 
+/// 从 templates/ 目录加载所有模板
+fn load_templates_from_files() -> HashMap<String, MailTemplate> {
+    let mut templates = HashMap::new();
+    
+    // 确定模板目录路径（相对于当前工作目录或可执行文件）
+    let template_dir = find_template_dir();
+    
+    for (name, description) in TEMPLATE_DESCRIPTIONS {
+        let file_path = template_dir.join(format!("{}.txt", name));
+        if let Ok(content) = fs::read_to_string(&file_path) {
+            let mut lines = content.lines();
+            let subject = lines.next().unwrap_or("").to_string();
+            let body: String = lines.collect::<Vec<&str>>().join("\n");
+            
+            templates.insert(
+                name.to_string(),
+                MailTemplate {
+                    name: name,
+                    description: description,
+                    subject: subject,
+                    body: body,
+                },
+            );
+        }
+    }
+    
+    templates
+}
+
+/// 查找模板目录
+fn find_template_dir() -> std::path::PathBuf {
+    // 优先使用环境变量
+    if let Ok(env_dir) = std::env::var("QTRECURIT_TEMPLATES_DIR") {
+        return std::path::PathBuf::from(env_dir);
+    }
+    
+    // 尝试相对路径（开发环境）
+    let dev_path = Path::new("templates");
+    if dev_path.exists() {
+        return dev_path.to_path_buf();
+    }
+    
+    // 尝试相对于可执行文件的路径（生产环境）
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            let prod_path = exe_dir.join("templates");
+            if prod_path.exists() {
+                return prod_path;
+            }
+        }
+    }
+    
+    // 默认返回当前目录下的 templates
+    std::path::PathBuf::from("templates")
+}
+
+/// 全局模板缓存
+static TEMPLATES: Lazy<HashMap<String, MailTemplate>> = Lazy::new(load_templates_from_files);
+
 pub fn find_template(name: &str) -> Option<&'static MailTemplate> {
-    TEMPLATES.iter().find(|t| t.name == name)
+    TEMPLATES.get(name)
 }
 
 #[cfg(test)]
@@ -149,8 +164,8 @@ mod tests {
         let tpl = MailTemplate {
             name: "test",
             description: "",
-            subject: "s",
-            body: "{{name}}你好，欢迎 {{company}}",
+            subject: "s".to_string(),
+            body: "{{name}}你好，欢迎 {{company}}".to_string(),
         };
         let rendered = render_template(&tpl, &[("name".to_string(), "张三".to_string())]);
         assert!(rendered.contains("张三你好"));

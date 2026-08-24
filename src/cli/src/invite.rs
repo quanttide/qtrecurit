@@ -39,7 +39,7 @@ pub fn run(args: &InviteArgs) -> Result<()> {
 
     let (_id, sent) = send_mail(
         &args.to,
-        tpl.subject,
+        &tpl.subject,
         &body,
         args.qr.as_deref(),
         "invite",

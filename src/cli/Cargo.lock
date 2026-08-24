@@ -663,6 +663,7 @@ dependencies = [
  "chrono",
  "clap",
  "dirs",
+ "once_cell",
  "predicates",
  "quanttide-agent",
  "regex",

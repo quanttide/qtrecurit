@@ -50,4 +50,4 @@ CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人�
 
 **Q: 想修改邮件话术？**
 
-话术模板硬编码在 `src/cli/src/templates.rs` 中（源自业务实体手册 `qtrecurit/connect/content.md`）。修改后需重新编译。
+话术模板存储在 `src/cli/templates/` 目录下的文本文件中（源自业务实体手册 `qtrecurit/connect/content.md`）。每个模板文件格式：第一行为邮件主题，其余为邮件正文。修改文本文件后无需重新编译。

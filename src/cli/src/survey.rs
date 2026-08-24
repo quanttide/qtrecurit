@@ -45,7 +45,7 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
 
     let (_id, sent) = send_mail(
         &args.to,
-        tpl.subject,
+        &tpl.subject,
         &body,
         None,
         "survey",
