@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [0.1.0-alpha.4] - 2026-08-24
+
+### Changed
+
+- `main.rs` 改用 lib 模块（对齐 qtcloud-connect 结构），消除 bin 私有模块导致的 dead_code 警告
+
+### Removed
+
+- 无
+
 ## [0.1.0-alpha.3] - 2026-08-24
 
 ### Added
