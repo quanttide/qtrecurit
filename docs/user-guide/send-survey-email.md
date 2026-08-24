@@ -62,22 +62,26 @@ CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人�
 qtrecurit access survey --to candidate@example.com --name 张三
 ```
 
-### 方式二：手动缓存
+### 方式二：手动从 HR 邮箱获取
 
-提前获取并缓存问卷链接，后续发送时直接使用：
+如果需要手动获取问卷链接，可按以下步骤操作：
 
 ```bash
-# 从 HR 邮箱获取最新问卷链接并缓存
+# 步骤 1：搜索包含「准入问卷」的邮件
+lark-cli mail +triage --mailbox hr@quanttide.com --query "准入问卷" --max 10
+
+# 步骤 2：从输出中找到邮件的 message_id（例如：ZTExOWFiMmQtMjM2My00YzA1LWE1MzAtOWY2YjE0ODdhNTE4）
+
+# 步骤 3：获取邮件完整内容
+lark-cli mail +messages --mailbox hr@quanttide.com --message-ids "<message_id>" --format json
+
+# 步骤 4：从邮件正文中提取问卷链接（形如 https://quanttide.feishu.cn/share/base/form/...）
+
+# 步骤 5：缓存获取到的链接
 qtrecurit cache refresh-survey
-
-# 查看当前缓存的问卷链接
-qtrecurit cache show-survey
-
-# 清除问卷链接缓存
-qtrecurit cache clear-survey
 ```
 
-### 方式三：手动指定
+### 方式三：手动指定链接
 
 直接使用 `--link` 参数指定问卷链接：
 
