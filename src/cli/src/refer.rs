@@ -43,14 +43,14 @@ pub fn gen_referral_code(now: chrono::DateTime<chrono::Local>, seq: u32) -> Stri
     format!("REF-{}-{:03}", now.format("%Y%m%d"), seq)
 }
 
-/// 推荐邮件正文（只给已验证事实 + 品格结论，不给判分细节）
+/// 推荐邮件正文（只给已验证事实，不给考核评级/判分细节）
 pub fn build_referral_body(name: &str, company: &str, code: &str) -> String {
     format!(
         r#"您好，
 
 我们向贵司（{company}）推荐候选人 {name}。
 
-候选人经量潮招聘流程评估，材料真实，责任心评级为中等及以上，配合度良好。以下为已验证事实：
+候选人经量潮招聘流程评估，材料真实。以下为已验证事实：
 - 候选人基本信息、简历、问卷材料均与我们核实一致
 - 评估过程无诚信问题
 
@@ -183,12 +183,13 @@ mod tests {
         assert!(body.contains("张三"));
         assert!(body.contains("示例企业"));
         assert!(body.contains("REF-20260822-001"));
-        // 只给已验证事实 + 品格结论，不给判分细节
+        // 只给已验证事实，不给考核评级/判分细节（考核属 access 域，不混入推荐信）
         assert!(!body.contains("51 分"));
         assert!(!body.contains("评分"));
         assert!(!body.contains("判分"));
+        assert!(!body.contains("责任心评级"));
+        assert!(!body.contains("配合度"));
         assert!(body.contains("材料真实"));
-        assert!(body.contains("责任心评级"));
     }
 
     #[test]
