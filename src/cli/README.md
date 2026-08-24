@@ -27,7 +27,7 @@ qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例�
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
 
 # 考核（access）域——招聘考核流程沟通命令（话术见业务实体手册 qtrecurit/connect/content.md）
-qtrecurit access survey    --to 候选人@example.com --name 张三 --link https://问卷链接        # 准入问卷发放
+qtrecurit access survey    --to 候选人@example.com --name 张三 [--link https://问卷链接]  # 准入问卷发放（链接可选，优先从缓存获取）
 qtrecurit access invite    --to 候选人@example.com --name 张三 [--qr 群二维码.png]            # 实训邀请（进群）
 qtrecurit access exam      --to 候选人@example.com                                            # 笔试（发送笔试邀请）
 qtrecurit access interview --to 候选人@example.com --name 张三 --position 数据工程师 --time "6月20日 10:00"  # 面试通知
@@ -83,8 +83,29 @@ Lark 邮箱 → 分页拉取（fetch_all_meta）
 |----------|------|--------|
 | `QTRECURIT_PROFILE` | profile 仓库路径 | `../../data/profile` |
 | `DEEPSEEK_API_KEY` | LLM 分类 API Key | — |
+| `XDG_CACHE_HOME` | 缓存目录 | `~/.cache` |
 
 岗位分类规则存放在 `profile/connect/rules.json`，未设置时使用内置 12 个岗位规则。
+
+## 缓存
+
+问卷链接缓存遵循 XDG Base Directory Specification，存储在 `~/.cache/qtrecurit/survey_url`。
+
+```bash
+# 查看当前缓存的问卷链接
+qtrecurit cache show-survey
+
+# 从 HR 邮箱获取最新问卷链接并缓存
+qtrecurit cache refresh-survey
+
+# 清除问卷链接缓存
+qtrecurit cache clear-survey
+```
+
+使用 `access survey` 命令时，问卷链接优先级：
+1. `--link` 参数指定的链接
+2. 本地缓存的链接
+3. 自动从 HR 邮箱获取（并缓存）
 
 ## 开发
 
