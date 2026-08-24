@@ -4,22 +4,6 @@
 
 ## 获取问卷链接
 
-问卷链接可通过以下方式获取：
-
-### 方式一：自动获取（推荐）
-
-直接运行 `access survey` 命令，不指定 `--link` 参数，CLI 会自动按以下顺序获取：
-1. 检查本地缓存（`~/.cache/qtrecurit/survey_url`）
-2. 缓存未命中时，自动从 HR 邮箱搜索包含「准入问卷」的邮件并提取链接
-3. 获取后自动缓存，下次直接使用
-
-```bash
-# 直接发送，CLI 自动获取问卷链接
-qtrecurit access survey --to candidate@example.com --name 张三
-```
-
-### 方式二：手动从 HR 邮箱获取
-
 如果需要手动获取问卷链接，可按以下步骤操作：
 
 ```bash
@@ -37,20 +21,6 @@ lark-cli mail +messages --mailbox hr@quanttide.com --message-ids "<message_id>" 
 qtrecurit cache refresh-survey
 ```
 
-### 方式三：手动指定链接
-
-直接使用 `--link` 参数指定问卷链接：
-
-```bash
-qtrecurit access survey --to candidate@example.com --name 张三 --link https://具体链接
-```
-
-### 链接获取优先级
-
-使用 `access survey` 命令时，问卷链接按以下优先级获取：
-1. `--link` 参数指定的链接（最高优先级）
-2. 本地缓存的链接
-3. 自动从 HR 邮箱获取（并缓存）
 
 ## 获取候选人信息
 
