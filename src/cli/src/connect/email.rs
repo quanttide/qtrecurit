@@ -571,9 +571,13 @@ pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
         .context("无法解析邮件列表")?;
     
     // 从发件人邮箱匹配候选人的投递邮件
+    // from 字段格式: "name <email>" 或 "email"
     for msg in messages {
         if let Some(from) = msg["from"].as_str() {
-            if from == email {
+            let matched = from == email 
+                || from.contains(&format!("<{}>", email))
+                || from.starts_with(email);
+            if matched {
                 if let Some(message_id) = msg["message_id"].as_str() {
                     return Ok(Some(message_id.to_string()));
                 }
@@ -651,10 +655,10 @@ pub fn verify_sent_mail(to: &str, subject: &str) -> Result<VerifyResult> {
     
     for msg in messages {
         let msg_subject = msg["subject"].as_str().unwrap_or("");
-        let msg_to = msg["to"].as_str().unwrap_or("");
         let message_id = msg["message_id"].as_str().unwrap_or("");
         
-        if msg_subject == subject && msg_to == to {
+        // triage 响应不含 to 字段，仅匹配 subject
+        if msg_subject == subject {
             return Ok(VerifyResult {
                 success: true,
                 message_id: message_id.to_string(),
