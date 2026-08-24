@@ -12,7 +12,7 @@ if [ $# -lt 1 ]; then
 fi
 
 VERSION="$1"
-CHANGELOG="${2:-../CHANGELOG.md}"
+CHANGELOG="${2:-CHANGELOG.md}"
 
 if [ ! -f "$CHANGELOG" ]; then
   echo "CHANGELOG.md not found: $CHANGELOG" >&2
