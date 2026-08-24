@@ -8,11 +8,11 @@
 - 删除通用 `mail` 命令（通道能力不属业务域），话术模板内容移除（模板机制保留）
 - 发送日志由 `send_mail` 通道内部处理，业务命令不感知
 - `refer` 推荐信正文移除考核评级（责任心评级/配合度）——考核属 access 域，推荐信只给已验证事实
-- 新增招聘沟通命令（话术严格照业务实体手册 `qtrecurit/connect/content.md`）：
-  - `survey`：准入问卷发放
-  - `invite`：实训邀请（邀请进群，可带群二维码附件）
-  - `assess`：招聘考核邀请（access 域）
-  - `interview`：面试通知
+- 新增考核（access）域命令集（话术严格照业务实体手册 `qtrecurit/connect/content.md`）：
+  - `access survey`：准入问卷发放
+  - `access invite`：实训邀请（邀请进群，可带群二维码附件）
+  - `access assess`：招聘考核邀请
+  - `access interview`：面试通知
 
 ### Removed
 
@@ -21,7 +21,7 @@
 
 ### Added
 
-- `survey` / `invite` / `assess` / `interview`：招聘沟通命令（模板渲染 → 通道发送）
+- `access` 域命令集：`survey` / `invite` / `assess` / `interview`（模板渲染 → 通道发送）
 
 ## [0.1.0-alpha.4] - 2026-08-24
 

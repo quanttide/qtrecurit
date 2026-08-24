@@ -1,3 +1,4 @@
+pub mod access;
 pub mod assess;
 pub mod cli;
 pub mod interview;
