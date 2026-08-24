@@ -584,10 +584,11 @@ pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
     Ok(None)
 }
 
-/// 移动邮件到指定文件夹
+/// 移动邮件到指定文件夹，并标记为已读
 pub fn move_message_to_folder(message_id: &str, folder_id: &str, dry_run: bool) -> Result<()> {
     let data = serde_json::json!({
-        "add_folder": folder_id
+        "add_folder": folder_id,
+        "remove_label_ids": ["UNREAD"]
     });
     let data_str = data.to_string();
     
