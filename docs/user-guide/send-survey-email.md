@@ -5,7 +5,7 @@
 ## 前置条件
 
 1. 已安装 `lark-cli` 并完成登录认证
-2. 已构建 `qtrecurit` CLI（`cargo build --release`）
+2. 已构建 `qtrecurit` CLI
 3. 候选人的邮箱地址、姓名、准入问卷链接
 
 ## 发送问卷邮件
@@ -19,32 +19,12 @@ qtrecurit access survey \
 
 CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人姓名和问卷链接填入对应位置，然后通过 `lark-cli` 从 `hr@quanttide.com` 邮箱发出。
 
-### 参数说明
+参数说明：
 
-| 参数 | 必填 | 说明 |
-|:-----|:----:|:-----|
-| `--to` | 是 | 候选人邮箱地址 |
-| `--name` | 是 | 候选人姓名 |
-| `--link` | 是 | 准入问卷链接 |
-| `--dry-run` | 否 | 只打印将执行的 `lark-cli` 命令，不实际执行 |
-
-### 预览命令（dry-run）
-
-不实际执行，只打印将要调用的 `lark-cli` 命令：
-
-```bash
-qtrecurit access survey \
-  --to candidate@example.com \
-  --name 张三 \
-  --link https://survey.quanttide.com/abc123 \
-  --dry-run
-```
-
-输出示例：
-
-```
-[dry-run] lark-cli mail +send --to candidate@example.com --subject 量潮科技准入问卷 --body 张三你好... --mailbox hr@quanttide.com --as user --format json
-```
+- `--to`（必填）候选人邮箱地址
+- `--name`（必填）候选人姓名
+- `--link`（必填）准入问卷链接
+- `--dry-run`（可选）只打印将执行的 `lark-cli` 命令，不实际执行
 
 ## 邮件内容
 
