@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-use crate::{assess, refer, report};
+use crate::{assess, interview, invite, refer, report, survey};
 
 #[derive(Parser)]
 #[command(name = "qtrecurit", version, about = "量潮招聘 CLI")]
@@ -15,8 +15,14 @@ pub enum Commands {
     Report(ReportArgs),
     /// 凭证化人才推荐：凭证号 → 推荐信 → 发送 → 台账
     Refer(refer::ReferArgs),
+    /// 准入问卷发放：候选人投递后，进入筛选流程前
+    Survey(survey::SurveyArgs),
+    /// 邀请进群（实训邀请）：准入问卷通过后
+    Invite(invite::InviteArgs),
     /// 招聘考核邀请（access 域）：邀请候选人直接参与招聘考核
     Assess(assess::AssessArgs),
+    /// 面试通知：筛选/考核通过后，安排面试
+    Interview(interview::InterviewArgs),
 }
 
 #[derive(Args)]
@@ -38,7 +44,10 @@ pub fn run() {
     let result = match &cli.command {
         Some(Commands::Report(args)) => report::run(args),
         Some(Commands::Refer(args)) => refer::run(args),
+        Some(Commands::Survey(args)) => survey::run(args),
+        Some(Commands::Invite(args)) => invite::run(args),
         Some(Commands::Assess(args)) => assess::run(args),
+        Some(Commands::Interview(args)) => interview::run(args),
         None => Ok(()),
     };
     if let Err(e) = result {

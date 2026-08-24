@@ -27,9 +27,12 @@ qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例�
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --confirm-send
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
 
-# 招聘考核邀请（access 域：材料与流程表现突出者，直接邀请参与招聘考核）
-qtrecurit assess --to 候选人@example.com
-qtrecurit assess --to 候选人@example.com --confirm-send
+# 招聘沟通（话术见业务实体手册 qtrecurit/connect/content.md，草稿确认制）
+qtrecurit survey    --to 候选人@example.com --name 张三 --link https://问卷链接        # 准入问卷发放
+qtrecurit invite    --to 候选人@example.com --name 张三 [--qr 群二维码.png]            # 实训邀请（进群）
+qtrecurit assess    --to 候选人@example.com                                            # 招聘考核邀请
+qtrecurit interview --to 候选人@example.com --name 张三 --position 数据工程师 --time "6月20日 10:00"  # 面试通知
+# 均支持 --confirm-send（确认后直接发送）与 --dry-run（预览不发送）
 ```
 
 输出包含：
@@ -57,9 +60,9 @@ qtrecurit report
   └── funnel.rs            — 招聘漏斗分析（关键词匹配）
 ```
 
-业务命令（`report` / `refer` / `assess`）按招聘业务动作命名，发送日志由 `connect/email.rs::send_mail`
-内部处理（业务命令不感知）；考核话术见 `src/templates.rs`（源自业务实体手册
-`qtrecurit/connect/content.md`）。
+业务命令按招聘业务动作命名（`report` / `refer` / `survey` / `invite` / `assess` / `interview`），
+发送日志由 `connect/email.rs::send_mail` 内部处理（业务命令不感知）；沟通话术见
+`src/templates.rs`（严格照业务实体手册 `qtrecurit/connect/content.md`）。
 
 ## 数据流
 

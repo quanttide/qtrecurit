@@ -1,7 +1,7 @@
-//! 模板渲染机制（关键机制，保留）+ 考核域话术内容。
+//! 模板渲染机制（关键机制）+ 招聘沟通话术内容。
 //!
-//! 机制（MailTemplate / render_template / parse_vars）与考核（access）话术
-//! 内容一并维护；内容源自业务实体手册 qtrecurit/connect/content.md。
+//! 内容严格照业务实体手册 `quanttide-handbook-of-business-entity`
+//! `qtrecurit/connect/content.md`（工作流沟通内容，最新版）。
 
 #[derive(Debug, Clone)]
 pub struct MailTemplate {
@@ -33,9 +33,35 @@ pub fn parse_vars(raw: Option<&str>) -> Vec<(String, String)> {
     out
 }
 
-// ── 考核（access）话术内容 ────────────────────────────────────────────────
+// ── 话术内容（源自业务实体手册 qtrecurit/connect/content.md）────────────
 
 pub const TEMPLATES: &[MailTemplate] = &[
+    MailTemplate {
+        name: "survey",
+        description: "准入问卷发放：候选人投递后，进入筛选流程前",
+        subject: "量潮科技准入问卷",
+        body: r#"{{name}}你好，感谢你对量潮科技的关注与投递。在继续招聘流程之前，请先完成以下准入问卷：{{link}}
+
+问卷大约需要15-20分钟，请基于真实想法认真作答。这是进入筛选流程的必要条件。未在3个工作日内提交的，申请将被视为未完成。仅提醒一次。
+
+量潮科技HR"#,
+    },
+    MailTemplate {
+        name: "invite",
+        description: "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地",
+        subject: "量潮实训基地邀请",
+        body: r#"{{name}}你好，感谢你完成量潮科技的准入问卷。经评估，你已通过初筛，正式受邀加入量潮实训基地。
+
+实训基地是量潮科技对外招聘考核的组成部分。你将在这里通过完成真实的工作任务接受考核，以实际产出代替答卷。
+
+请扫码加入实训基地群（见附件二维码），进群后修改昵称为「{{name}}-岗位意向」。
+
+具体考核规则将在群内发布，请关注群公告和资料。
+
+期待在基地见到你。
+
+量潮科技 招聘团队"#,
+    },
     MailTemplate {
         name: "assess",
         description: "招聘考核邀请：邀请材料与流程表现突出的候选人直接参与招聘考核",
@@ -54,6 +80,21 @@ pub const TEMPLATES: &[MailTemplate] = &[
 
 期待你的回复。"#,
     },
+    MailTemplate {
+        name: "interview",
+        description: "面试通知：筛选/考核通过后，安排面试",
+        subject: "量潮面试通知",
+        body: r#"{{name}}你好，我是量潮科技的HR，感谢你应聘我司的{{position}}。
+
+面试时间：{{time}}
+面试形式：飞书线上面试
+
+面试主要围绕你此前提交的材料与实际成果展开，期待与你深入交流。
+
+如有任何问题，请随时与我联系。期待你的表现！
+
+量潮科技 HR"#,
+    },
 ];
 
 pub fn find_template(name: &str) -> Option<&'static MailTemplate> {
@@ -65,17 +106,40 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_find_template_assess() {
+    fn test_find_template_all_four() {
+        assert!(find_template("survey").is_some());
+        assert!(find_template("invite").is_some());
         assert!(find_template("assess").is_some());
+        assert!(find_template("interview").is_some());
         assert!(find_template("unknown").is_none());
     }
 
     #[test]
-    fn test_assess_template_no_unresolved_vars() {
+    fn test_template_vars_rendered() {
+        for name in ["survey", "invite", "interview"] {
+            let tpl = find_template(name).unwrap();
+            let vars: Vec<(String, String)> = vec![
+                ("name".into(), "张三".into()),
+                ("link".into(), "https://example.com/survey".into()),
+                ("position".into(), "数据工程师".into()),
+                ("time".into(), "6月20日 10:00".into()),
+            ];
+            let rendered = render_template(tpl, &vars);
+            assert!(
+                !rendered.contains("{{"),
+                "模板 {} 渲染后仍有未解析占位符: {:?}",
+                name,
+                rendered
+            );
+        }
+    }
+
+    #[test]
+    fn test_assess_template_no_vars() {
         let tpl = find_template("assess").unwrap();
         assert!(
             !tpl.body.contains("{{"),
-            "assess 模板有未解析占位符: {:?}",
+            "assess 模板有占位符: {:?}",
             tpl.body
         );
     }
