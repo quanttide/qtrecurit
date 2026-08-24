@@ -1,6 +1,6 @@
 //! 模板渲染机制 + 话术内容加载。
 //!
-//! 话术模板存储在 `templates/` 目录下的文本文件中，格式为：
+//! 话术模板在编译时通过 `include_str!` 嵌入二进制，格式为：
 //! - 第一行：邮件主题
 //! - 其余行：邮件正文
 //!
@@ -8,7 +8,6 @@
 //! `qtrecurit/connect/content.md`（工作流沟通内容，最新版）。
 
 use std::collections::HashMap;
-use std::fs;
 
 use once_cell::sync::Lazy;
 
@@ -42,76 +41,48 @@ pub fn parse_vars(raw: Option<&str>) -> Vec<(String, String)> {
     out
 }
 
-// ── 模板加载 ────────────────────────────────────────────────────────
+// ── 模板加载（编译时嵌入） ─────────────────────────────────────────
 
-/// 模板描述信息（编译时已知，运行时加载内容）
-const TEMPLATE_DESCRIPTIONS: &[(&str, &str)] = &[
-    ("survey", "准入问卷发放：候选人投递后，进入筛选流程前"),
-    ("invite", "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地"),
-    ("exam", "笔试：发送笔试邀请，候选人以实际成果参与考核"),
-    ("interview", "面试通知：筛选/考核通过后，安排面试"),
-];
-
-/// 从 templates/ 目录加载所有模板
-fn load_templates_from_files() -> HashMap<String, MailTemplate> {
-    let mut templates = HashMap::new();
-    
-    // 确定模板目录路径（相对于当前工作目录或可执行文件）
-    let template_dir = find_template_dir();
-    
-    for (name, description) in TEMPLATE_DESCRIPTIONS {
-        let file_path = template_dir.join(format!("{}.txt", name));
-        if let Ok(content) = fs::read_to_string(&file_path) {
-            let mut lines = content.lines();
-            let subject = lines.next().unwrap_or("").to_string();
-            let body: String = lines.collect::<Vec<&str>>().join("\n");
-            
-            templates.insert(
-                name.to_string(),
-                MailTemplate {
-                    name: name,
-                    description: description,
-                    subject: subject,
-                    body: body,
-                },
-            );
-        }
-    }
-    
-    templates
+/// 解析模板内容：第一行是主题，其余是正文
+fn parse_template(content: &'static str) -> (String, String) {
+    let mut lines = content.lines();
+    let subject = lines.next().unwrap_or("").to_string();
+    let body: String = lines.collect::<Vec<&str>>().join("\n");
+    (subject, body)
 }
 
-/// 查找模板目录
-fn find_template_dir() -> std::path::PathBuf {
-    // 优先使用环境变量
-    if let Ok(env_dir) = std::env::var("QTRECURIT_TEMPLATES_DIR") {
-        return std::path::PathBuf::from(env_dir);
-    }
-    
-    // 开发环境：使用 CARGO_MANIFEST_DIR 定位源码目录
-    if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
-        let src_path = std::path::PathBuf::from(manifest_dir).join("src/templates");
-        if src_path.exists() {
-            return src_path;
-        }
-    }
-    
-    // 生产环境：相对于可执行文件的路径
-    if let Ok(exe_path) = std::env::current_exe() {
-        if let Some(exe_dir) = exe_path.parent() {
-            let prod_path = exe_dir.join("templates");
-            if prod_path.exists() {
-                return prod_path;
+macro_rules! include_template {
+    ($name:expr, $desc:expr, $file:expr) => {
+        {
+            let (subject, body) = parse_template(include_str!($file));
+            MailTemplate {
+                name: $name,
+                description: $desc,
+                subject,
+                body,
             }
         }
-    }
-    
-    // 默认返回当前目录下的 templates
-    std::path::PathBuf::from("templates")
+    };
 }
 
-/// 全局模板缓存
-static TEMPLATES: Lazy<HashMap<String, MailTemplate>> = Lazy::new(load_templates_from_files);
+/// 全局模板缓存（编译时嵌入，零运行时 I/O）
+static TEMPLATES: Lazy<HashMap<&'static str, MailTemplate>> = Lazy::new(|| {
+    let mut m = HashMap::new();
+    
+    let survey = include_template!("survey", "准入问卷发放：候选人投递后，进入筛选流程前", "templates/survey.txt");
+    m.insert("survey", survey);
+    
+    let invite = include_template!("invite", "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地", "templates/invite.txt");
+    m.insert("invite", invite);
+    
+    let exam = include_template!("exam", "笔试：发送笔试邀请，候选人以实际成果参与考核", "templates/exam.txt");
+    m.insert("exam", exam);
+    
+    let interview = include_template!("interview", "面试通知：筛选/考核通过后，安排面试", "templates/interview.txt");
+    m.insert("interview", interview);
+    
+    m
+});
 
 pub fn find_template(name: &str) -> Option<&'static MailTemplate> {
     TEMPLATES.get(name)
