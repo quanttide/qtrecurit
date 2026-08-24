@@ -69,16 +69,16 @@ macro_rules! include_template {
 static TEMPLATES: Lazy<HashMap<&'static str, MailTemplate>> = Lazy::new(|| {
     let mut m = HashMap::new();
     
-    let survey = include_template!("survey", "准入问卷发放：候选人投递后，进入筛选流程前", "templates/survey.txt");
+    let survey = include_template!("survey", "准入问卷发放：候选人投递后，进入筛选流程前", "../templates/survey.txt");
     m.insert("survey", survey);
     
-    let invite = include_template!("invite", "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地", "templates/invite.txt");
+    let invite = include_template!("invite", "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地", "../templates/invite.txt");
     m.insert("invite", invite);
     
-    let exam = include_template!("exam", "笔试：发送笔试邀请，候选人以实际成果参与考核", "templates/exam.txt");
+    let exam = include_template!("exam", "笔试：发送笔试邀请，候选人以实际成果参与考核", "../templates/exam.txt");
     m.insert("exam", exam);
     
-    let interview = include_template!("interview", "面试通知：筛选/考核通过后，安排面试", "templates/interview.txt");
+    let interview = include_template!("interview", "面试通知：筛选/考核通过后，安排面试", "../templates/interview.txt");
     m.insert("interview", interview);
     
     m
