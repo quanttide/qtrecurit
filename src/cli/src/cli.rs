@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-use crate::{refer, report};
+use crate::{assess, refer, report};
 
 #[derive(Parser)]
 #[command(name = "qtrecurit", version, about = "量潮招聘 CLI")]
@@ -15,6 +15,8 @@ pub enum Commands {
     Report(ReportArgs),
     /// 凭证化人才推荐：凭证号 → 推荐信 → 发送 → 台账
     Refer(refer::ReferArgs),
+    /// 招聘考核邀请（access 域）：邀请候选人直接参与招聘考核
+    Assess(assess::AssessArgs),
 }
 
 #[derive(Args)]
@@ -36,6 +38,7 @@ pub fn run() {
     let result = match &cli.command {
         Some(Commands::Report(args)) => report::run(args),
         Some(Commands::Refer(args)) => refer::run(args),
+        Some(Commands::Assess(args)) => assess::run(args),
         None => Ok(()),
     };
     if let Err(e) = result {

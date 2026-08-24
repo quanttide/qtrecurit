@@ -26,6 +26,10 @@ qtrecurit report --start 2026-06-01 --end 2026-06-30
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --confirm-send
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
+
+# 招聘考核邀请（access 域：材料与流程表现突出者，直接邀请参与招聘考核）
+qtrecurit assess --to 候选人@example.com
+qtrecurit assess --to 候选人@example.com --confirm-send
 ```
 
 输出包含：
@@ -53,8 +57,9 @@ qtrecurit report
   └── funnel.rs            — 招聘漏斗分析（关键词匹配）
 ```
 
-业务命令（`report` / `refer`）按招聘业务动作命名，发送日志由 `connect/email.rs::send_mail`
-内部处理（业务命令不感知）；模板机制见 `src/templates.rs`（不写具体话术内容）。
+业务命令（`report` / `refer` / `assess`）按招聘业务动作命名，发送日志由 `connect/email.rs::send_mail`
+内部处理（业务命令不感知）；考核话术见 `src/templates.rs`（源自业务实体手册
+`qtrecurit/connect/content.md`）。
 
 ## 数据流
 

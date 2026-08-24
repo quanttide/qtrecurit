@@ -1,3 +1,4 @@
+pub mod assess;
 pub mod cli;
 pub mod connect;
 pub mod funnel;
