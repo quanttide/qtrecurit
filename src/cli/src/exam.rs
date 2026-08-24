@@ -1,6 +1,5 @@
-//! 招聘考核邀请（access 域）：邀请材料与流程表现突出的候选人直接参与招聘考核。
+//! 笔试（access 域动作）：发送笔试邀请，候选人以实际成果参与考核。
 //!
-//! 考核（access）是独立业务域：本命令只做考核邀请动作，
 //! 话术内容见 templates.rs（源自业务实体手册 qtrecurit/connect/content.md），
 //! 发送经 connect::email::send_mail 通道（日志由通道内部处理）。
 
@@ -11,7 +10,7 @@ use crate::connect::email::send_mail;
 use crate::templates;
 
 #[derive(Args)]
-pub struct AssessArgs {
+pub struct ExamArgs {
     /// 候选人邮箱
     #[arg(long)]
     pub to: String,
@@ -25,9 +24,9 @@ pub struct AssessArgs {
     pub dry_run: bool,
 }
 
-pub fn run(args: &AssessArgs) -> Result<()> {
-    let tpl = templates::find_template("assess")
-        .expect("assess 模板必须存在（templates.rs TEMPLATES）");
+pub fn run(args: &ExamArgs) -> Result<()> {
+    let tpl = templates::find_template("exam")
+        .expect("exam 模板必须存在（templates.rs TEMPLATES）");
     let subject = tpl.subject.to_string();
     let body = tpl.body.to_string();
 
@@ -36,7 +35,7 @@ pub fn run(args: &AssessArgs) -> Result<()> {
         &subject,
         &body,
         None,
-        "assess",
+        "exam",
         args.confirm_send,
         args.dry_run,
     )?;
@@ -49,7 +48,7 @@ pub fn run(args: &AssessArgs) -> Result<()> {
         "draft".to_string()
     };
     println!(
-        "{} 收件人: {} | 模板: assess | 状态: {}",
+        "{} 收件人: {} | 模板: exam | 状态: {}",
         if args.dry_run {
             "[dry-run]"
         } else if sent {
@@ -68,8 +67,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_assess_template_loaded() {
-        let tpl = templates::find_template("assess").unwrap();
+    fn test_exam_template_loaded() {
+        let tpl = templates::find_template("exam").unwrap();
         assert_eq!(tpl.subject, "量潮招聘考核邀请");
         assert!(tpl.body.contains("实际成果为核心"));
         assert!(tpl.body.contains("实训"));

@@ -63,8 +63,8 @@ pub const TEMPLATES: &[MailTemplate] = &[
 量潮科技 招聘团队"#,
     },
     MailTemplate {
-        name: "assess",
-        description: "招聘考核邀请：邀请材料与流程表现突出的候选人直接参与招聘考核",
+        name: "exam",
+        description: "笔试：发送笔试邀请，候选人以实际成果参与考核",
         subject: "量潮招聘考核邀请",
         body: r#"你好，
 
@@ -109,7 +109,7 @@ mod tests {
     fn test_find_template_all_four() {
         assert!(find_template("survey").is_some());
         assert!(find_template("invite").is_some());
-        assert!(find_template("assess").is_some());
+        assert!(find_template("exam").is_some());
         assert!(find_template("interview").is_some());
         assert!(find_template("unknown").is_none());
     }
@@ -135,8 +135,8 @@ mod tests {
     }
 
     #[test]
-    fn test_assess_template_no_vars() {
-        let tpl = find_template("assess").unwrap();
+    fn test_exam_template_no_vars() {
+        let tpl = find_template("exam").unwrap();
         assert!(
             !tpl.body.contains("{{"),
             "assess 模板有占位符: {:?}",

@@ -11,7 +11,7 @@
 - 新增考核（access）域命令集（话术严格照业务实体手册 `qtrecurit/connect/content.md`）：
   - `access survey`：准入问卷发放
   - `access invite`：实训邀请（邀请进群，可带群二维码附件）
-  - `access assess`：招聘考核邀请
+  - `access exam`：笔试（发送笔试邀请）
   - `access interview`：面试通知
 
 ### Removed
@@ -21,7 +21,7 @@
 
 ### Added
 
-- `access` 域命令集：`survey` / `invite` / `assess` / `interview`（模板渲染 → 通道发送）
+- `access` 域命令集：`survey` / `invite` / `exam` / `interview`（模板渲染 → 通道发送）
 
 ## [0.1.0-alpha.4] - 2026-08-24
 

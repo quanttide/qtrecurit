@@ -6,7 +6,7 @@
 
 use clap::{Args, Subcommand};
 
-use crate::{assess, interview, invite, survey};
+use crate::{exam, interview, invite, survey};
 
 #[derive(Args)]
 pub struct AccessArgs {
@@ -20,8 +20,8 @@ pub enum AccessAction {
     Survey(survey::SurveyArgs),
     /// 邀请进群（实训邀请）：准入问卷通过后
     Invite(invite::InviteArgs),
-    /// 招聘考核邀请：邀请候选人直接参与招聘考核
-    Assess(assess::AssessArgs),
+    /// 笔试：发送笔试邀请，候选人以实际成果参与考核
+    Exam(exam::ExamArgs),
     /// 面试通知：筛选/考核通过后，安排面试
     Interview(interview::InterviewArgs),
 }
@@ -30,7 +30,7 @@ pub fn run(args: &AccessArgs) -> anyhow::Result<()> {
     match &args.action {
         AccessAction::Survey(a) => survey::run(a),
         AccessAction::Invite(a) => invite::run(a),
-        AccessAction::Assess(a) => assess::run(a),
+        AccessAction::Exam(a) => exam::run(a),
         AccessAction::Interview(a) => interview::run(a),
     }
 }

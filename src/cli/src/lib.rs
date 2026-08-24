@@ -1,5 +1,5 @@
 pub mod access;
-pub mod assess;
+pub mod exam;
 pub mod cli;
 pub mod interview;
 pub mod invite;
