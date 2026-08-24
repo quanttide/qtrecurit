@@ -78,19 +78,6 @@ qtrecurit access survey \
 
 模板中的 `{{name}}` 和 `{{link}}` 会自动替换为 `--name` 和 `--link` 参数的值。
 
-## 发送日志
-
-每次发送（或生成草稿）后，CLI 会自动将发送记录追加到 `.quanttide/logs/send.log`（JSONL 格式）。记录包含：
-
-- 发送时间
-- 收件人邮箱
-- 邮件主题
-- 使用的模板名称（`survey`）
-- 状态（`sent` / `draft`）
-- 草稿 ID
-
-可通过环境变量 `SEND_LOG_DIR` 自定义日志目录。
-
 ## 常见问题
 
 **Q: 发送失败，提示「无法启动 lark-cli」？**
