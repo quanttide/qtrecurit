@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread;
@@ -128,6 +128,136 @@ fn run_lark_raw(args: &[&str]) -> Result<std::process::Output> {
     }
 
     Ok(output)
+}
+
+// ── 发送通道（发件方向，复用 lark-cli 封装）─────────────────────────────
+
+/// 发送邮件。默认生成草稿；confirm_send 时确认后直接发送。
+/// 返回 (draft_id 或 message_id, 是否实际发送)。
+pub fn send_mail(
+    to: &str,
+    subject: &str,
+    body: &str,
+    attach: Option<&str>,
+    confirm_send: bool,
+    dry_run: bool,
+) -> Result<(String, bool)> {
+    let mut args = vec![
+        "mail",
+        "+send",
+        "--to",
+        to,
+        "--subject",
+        subject,
+        "--body",
+        body,
+        "--mailbox",
+        "hr@quanttide.com",
+    ];
+
+    if let Some(att) = attach {
+        args.extend(["--attach", att]);
+    }
+    if confirm_send {
+        args.push("--confirm-send");
+    }
+    args.extend(["--as", "user", "--format", "json"]);
+
+    if dry_run {
+        eprintln!("[dry-run] lark-cli {}", args.join(" "));
+        return Ok(("dry-run".to_string(), false));
+    }
+
+    let output = run_lark_raw(&args)?;
+    let data: Value =
+        serde_json::from_slice(&output.stdout).context("lark-cli +send 返回数据格式异常")?;
+
+    let id = data["data"]["draft_id"]
+        .as_str()
+        .or_else(|| data["data"]["message_id"].as_str())
+        .unwrap_or("")
+        .to_string();
+    Ok((id, confirm_send))
+}
+
+/// 发送已存在的草稿（+draft-send）
+pub fn send_draft(draft_id: &str, dry_run: bool) -> Result<()> {
+    let args = [
+        "mail",
+        "+draft-send",
+        "--draft-id",
+        draft_id,
+        "--as",
+        "user",
+        "--format",
+        "json",
+    ];
+    if dry_run {
+        eprintln!("[dry-run] lark-cli {}", args.join(" "));
+        return Ok(());
+    }
+    let output = run_lark_raw(&args)?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("草稿发送失败: {}", stderr.trim());
+    }
+    Ok(())
+}
+
+// ── 发送日志（只记元数据，不记正文）──────────────────────────────────────
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct SendLogEntry {
+    pub time: String,
+    pub to: String,
+    pub subject: String,
+    pub template: String,
+    pub status: String,
+    pub draft_id: String,
+    pub note: Option<String>,
+}
+
+pub fn default_log_dir() -> PathBuf {
+    std::env::var("SEND_LOG_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(".quanttide/logs"))
+}
+
+/// 追加一条发送日志（fail-closed：写入失败不静默）
+pub fn append_send_log(log_file: Option<&str>, entry: &SendLogEntry) -> Result<()> {
+    let path = match log_file {
+        Some(f) => PathBuf::from(f),
+        None => {
+            let dir = default_log_dir();
+            std::fs::create_dir_all(&dir).context("创建日志目录失败")?;
+            dir.join("send.log")
+        }
+    };
+    let line = serde_json::to_string(entry).context("序列化日志失败")?;
+    use std::io::Write;
+    let mut f = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .context("打开发送日志失败")?;
+    writeln!(f, "{}", line).context("写入发送日志失败")?;
+    Ok(())
+}
+
+/// 读取最近 N 条发送日志
+pub fn read_send_log(log_file: Option<&str>, tail: usize) -> Result<Vec<SendLogEntry>> {
+    let path = match log_file {
+        Some(f) => PathBuf::from(f),
+        None => default_log_dir().join("send.log"),
+    };
+    let content = std::fs::read_to_string(&path).context("读取发送日志失败")?;
+    let mut entries: Vec<SendLogEntry> = content
+        .lines()
+        .filter_map(|l| serde_json::from_str(l).ok())
+        .collect();
+    let start = entries.len().saturating_sub(tail);
+    entries.drain(..start);
+    Ok(entries)
 }
 
 // ── 邮件拉取管道 ──────────────────────────────────────────────────

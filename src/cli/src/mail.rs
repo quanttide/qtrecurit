@@ -7,11 +7,8 @@ use anyhow::Result;
 use chrono::Local;
 use clap::{Args, Subcommand};
 
-use qtcloud_connect_send::mail::{
-    LarkMailer, SendLogEntry, append_send_log, parse_vars, read_send_log, render_template,
-};
-
-use crate::templates;
+use crate::connect::email::{SendLogEntry, append_send_log, read_send_log, send_mail};
+use crate::templates::{self, parse_vars, render_template};
 
 #[derive(Args)]
 pub struct MailArgs {
@@ -112,8 +109,7 @@ fn cmd_send(args: &MailSendArgs) -> Result<()> {
         None
     };
 
-    let mailer = LarkMailer;
-    match mailer.send(
+    match send_mail(
         &args.to,
         &subject,
         &body,

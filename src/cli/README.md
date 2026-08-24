@@ -62,8 +62,8 @@ qtrecurit status
   └── funnel.rs            — 招聘漏斗分析（关键词匹配）
 ```
 
-`referral`（凭证化推荐）与 `mail`（招聘沟通邮件）业务归属招聘域，发送通道复用
-`qtcloud-connect-send`（lark-cli 封装，qtcloud-connect 仓库 src/send/），话术模板见 `src/templates.rs`。
+`referral`（凭证化推荐）与 `mail`（招聘沟通邮件）业务归属招聘域，收发一体走
+`connect/email.rs`（lark-cli 封装），模板机制与话术内容见 `src/templates.rs`。
 
 ## 数据流
 

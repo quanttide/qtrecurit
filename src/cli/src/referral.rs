@@ -9,7 +9,7 @@ use chrono::Local;
 use clap::Args;
 use std::path::PathBuf;
 
-use qtcloud_connect_send::mail::{LarkMailer, SendLogEntry, append_send_log};
+use crate::connect::email::{SendLogEntry, append_send_log, send_mail};
 
 #[derive(Args)]
 pub struct ReferralArgs {
@@ -121,8 +121,7 @@ fn cmd_send(args: &ReferralSendArgs) -> Result<()> {
     println!("企业:   {}", args.company);
     println!();
 
-    let mailer = LarkMailer;
-    match mailer.send(
+    match send_mail(
         &args.candidate_email,
         &subject,
         &body,
