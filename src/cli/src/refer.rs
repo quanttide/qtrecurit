@@ -22,10 +22,6 @@ pub struct ReferArgs {
     #[arg(long)]
     pub company: String,
 
-    /// 确认后直接发送（默认只生成草稿）
-    #[arg(long)]
-    pub confirm_send: bool,
-
     /// 发送前打印将执行的命令，不执行
     #[arg(long)]
     pub dry_run: bool,
@@ -63,7 +59,7 @@ pub fn run(args: &ReferArgs) -> Result<()> {
         &body,
         None,
         "refer",
-        args.confirm_send,
+        false,
         args.dry_run,
     )
     .map_err(|e| anyhow::anyhow!("发送推荐信失败: {e:#}"))?;
