@@ -46,23 +46,49 @@ CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人�
 
 模板中的 `{{name}}` 和 `{{link}}` 会自动替换为 `--name` 和 `--link` 参数的值。
 
-## 问卷链接缓存
+## 获取问卷链接
 
-问卷链接会自动缓存在 `~/.cache/qtrecurit/survey_url`（遵循 XDG 标准）。
+问卷链接可通过以下方式获取：
+
+### 方式一：自动获取（推荐）
+
+直接运行 `access survey` 命令，不指定 `--link` 参数，CLI 会自动按以下顺序获取：
+1. 检查本地缓存（`~/.cache/qtrecurit/survey_url`）
+2. 缓存未命中时，自动从 HR 邮箱搜索包含「准入问卷」的邮件并提取链接
+3. 获取后自动缓存，下次直接使用
 
 ```bash
-# 查看当前缓存的问卷链接
-qtrecurit cache show-survey
+# 直接发送，CLI 自动获取问卷链接
+qtrecurit access survey --to candidate@example.com --name 张三
+```
 
+### 方式二：手动缓存
+
+提前获取并缓存问卷链接，后续发送时直接使用：
+
+```bash
 # 从 HR 邮箱获取最新问卷链接并缓存
 qtrecurit cache refresh-survey
+
+# 查看当前缓存的问卷链接
+qtrecurit cache show-survey
 
 # 清除问卷链接缓存
 qtrecurit cache clear-survey
 ```
 
-使用 `access survey` 命令时，问卷链接优先级：
-1. `--link` 参数指定的链接
+### 方式三：手动指定
+
+直接使用 `--link` 参数指定问卷链接：
+
+```bash
+qtrecurit access survey --to candidate@example.com --name 张三 --link https://具体链接
+```
+
+### 链接获取优先级
+
+使用 `access survey` 命令时，问卷链接按以下优先级获取：
+1. `--link` 参数指定的链接（最高优先级）
 2. 本地缓存的链接
 3. 自动从 HR 邮箱获取（并缓存）
 
