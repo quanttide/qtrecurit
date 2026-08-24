@@ -19,6 +19,7 @@
 - `mail` 命令（send/template/log）与三套话术模板内容
 - 推荐信中的考核评级结论（access 内容）
 - `refer` 的 CSV 台账（referrals.csv 硬编码）——改为无状态，推荐记录待关联 Provider 数据库
+- `refer` 的凭证号（REF-YYYYMMDD-NNN）——无状态下无实际用途，一并移除
 
 ### Added
 

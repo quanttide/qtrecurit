@@ -1,10 +1,9 @@
-//! 凭证化人才推荐：生成凭证号 → 推荐信 → 发送。
+//! 人才推荐：向企业发送推荐信。
 //!
-//! 无状态命令：凭证号仅出现在推荐信与输出中，不持久化（推荐记录待 Provider 关联）。
+//! 无状态命令：只渲染推荐信并发送，无凭证号、无台账（记录待 Provider 关联）。
 //! 发送经 connect::email::send_mail 通道（发送日志由通道内部处理）。
 
 use anyhow::Result;
-use chrono::Local;
 use clap::Args;
 
 use crate::connect::email::send_mail;
@@ -32,13 +31,8 @@ pub struct ReferArgs {
     pub dry_run: bool,
 }
 
-/// 生成凭证号：REF-YYYYMMDD-NNN
-pub fn gen_referral_code(now: chrono::DateTime<chrono::Local>, seq: u32) -> String {
-    format!("REF-{}-{:03}", now.format("%Y%m%d"), seq)
-}
-
 /// 推荐邮件正文（只给已验证事实，不给考核评级/判分细节）
-pub fn build_referral_body(name: &str, company: &str, code: &str) -> String {
+pub fn build_referral_body(name: &str, company: &str) -> String {
     format!(
         r#"您好，
 
@@ -50,22 +44,15 @@ pub fn build_referral_body(name: &str, company: &str, code: &str) -> String {
 
 如需进一步了解候选人的具体情况，欢迎随时联系我们。
 
-此邮件由量潮推荐系统自动生成，凭证号：{code}。
-
 量潮科技 招聘团队"#
     )
 }
 
 pub fn run(args: &ReferArgs) -> Result<()> {
-    let now = Local::now();
-    let seq = (now.timestamp() % 1000) as u32;
-    let code = gen_referral_code(now, seq);
-
     let subject = format!("人才推荐：{} → {}", args.name, args.company);
-    let body = build_referral_body(&args.name, &args.company, &code);
+    let body = build_referral_body(&args.name, &args.company);
 
-    println!("=== 推荐凭证 ===");
-    println!("凭证号: {}", code);
+    println!("=== 人才推荐 ===");
     println!("候选人: {} <{}>", args.name, args.candidate_email);
     println!("企业:   {}", args.company);
     println!();
@@ -89,7 +76,7 @@ pub fn run(args: &ReferArgs) -> Result<()> {
         "draft".to_string()
     };
     println!(
-        "{} 凭证 {} | 状态: {}",
+        "{} 收件人: {} | 状态: {}",
         if args.dry_run {
             "[dry-run]"
         } else if sent {
@@ -97,7 +84,7 @@ pub fn run(args: &ReferArgs) -> Result<()> {
         } else {
             "✓ 已生成草稿"
         },
-        code,
+        args.candidate_email,
         status
     );
     Ok(())
@@ -108,30 +95,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_gen_referral_code_format() {
-        let now = chrono::DateTime::parse_from_rfc3339("2026-08-22T10:00:00+08:00")
-            .unwrap()
-            .with_timezone(&chrono::Local);
-        let code = gen_referral_code(now, 42);
-        assert_eq!(code, "REF-20260822-042");
-    }
-
-    #[test]
-    fn test_referral_code_uniqueness_with_seq() {
-        let now = chrono::DateTime::parse_from_rfc3339("2026-08-22T10:00:00+08:00")
-            .unwrap()
-            .with_timezone(&chrono::Local);
-        let a = gen_referral_code(now, 1);
-        let b = gen_referral_code(now, 2);
-        assert_ne!(a, b);
-    }
-
-    #[test]
     fn test_build_referral_body() {
-        let body = build_referral_body("张三", "示例企业", "REF-20260822-001");
+        let body = build_referral_body("张三", "示例企业");
         assert!(body.contains("张三"));
         assert!(body.contains("示例企业"));
-        assert!(body.contains("REF-20260822-001"));
         // 只给已验证事实，不给考核评级/判分细节（考核属 access 域，不混入推荐信）
         assert!(!body.contains("51 分"));
         assert!(!body.contains("评分"));
@@ -139,5 +106,8 @@ mod tests {
         assert!(!body.contains("责任心评级"));
         assert!(!body.contains("配合度"));
         assert!(body.contains("材料真实"));
+        // 无凭证号（无状态）
+        assert!(!body.contains("REF-"));
+        assert!(!body.contains("凭证号"));
     }
 }
