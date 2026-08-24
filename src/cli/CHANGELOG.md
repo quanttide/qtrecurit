@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [0.1.0-alpha.2] - 2026-08-24
+
+### Added
+
+- CI: `release-cli` 工作流（tag `cli/*` 触发——版本/CHANGELOG 校验 + `cargo test` + Linux/macOS/Windows 三平台 release 构建）
+
+### Changed
+
+- 无
+
+### Removed
+
+- 无
+
 ## [0.1.0-alpha.1] - 2026-08-24
 
 ### Added
