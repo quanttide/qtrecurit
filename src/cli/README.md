@@ -22,9 +22,8 @@ qtrecurit report
 qtrecurit report --days 30
 qtrecurit report --start 2026-06-01 --end 2026-06-30
 
-# 人才推荐（推荐信 → 草稿 → 确认 → 发送，无状态、无凭证号/台账）
+# 人才推荐（推荐信 → 发送，无状态、无凭证号/台账）
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业
-qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --confirm-send
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
 
 # 考核（access）域——招聘考核流程沟通命令（话术见业务实体手册 qtrecurit/connect/content.md）
@@ -32,7 +31,7 @@ qtrecurit access survey    --to 候选人@example.com --name 张三 --link https
 qtrecurit access invite    --to 候选人@example.com --name 张三 [--qr 群二维码.png]            # 实训邀请（进群）
 qtrecurit access exam      --to 候选人@example.com                                            # 笔试（发送笔试邀请）
 qtrecurit access interview --to 候选人@example.com --name 张三 --position 数据工程师 --time "6月20日 10:00"  # 面试通知
-# 均支持 --confirm-send（确认后直接发送）与 --dry-run（预览不发送）
+# 均支持 --dry-run（预览不发送）
 ```
 
 输出包含：
