@@ -2,50 +2,6 @@
 
 本指南说明如何使用 `qtrecurit` CLI 向候选人发送准入问卷通知邮件。
 
-## 获取候选人信息
-
-候选人的邮箱地址和姓名从 HR 邮箱收到的投递邮件中获取：
-
-```bash
-# 查看最近的投递邮件
-lark-cli mail +triage --mailbox hr@quanttide.com --max 10
-
-# 搜索特定候选人的邮件
-lark-cli mail +triage --mailbox hr@quanttide.com --query "候选人姓名"
-```
-
-邮件主题通常包含候选人姓名和应聘岗位，例如「数据工程师-张三-清华大学-6个月」。
-
-## 发送问卷邮件
-
-```bash
-qtrecurit access survey \
-  --to candidate@example.com \
-  --name 张三 \
-  --link https://survey.quanttide.com/abc123
-```
-
-CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人姓名和问卷链接填入对应位置，然后通过 `lark-cli` 从 `hr@quanttide.com` 邮箱发出。
-
-### 参数说明
-
-- `--to`（必填）候选人邮箱地址
-- `--name`（必填）候选人姓名
-- `--link`（可选）准入问卷链接，留空时自动从缓存或 HR 邮箱获取
-- `--dry-run`（可选）只打印将执行的 `lark-cli` 命令，不实际执行
-
-## 邮件内容
-
-发送的邮件使用内置的 `survey` 话术模板，内容如下：
-
-> 张三你好，感谢你对量潮科技的关注与投递。在继续招聘流程之前，请先完成以下准入问卷：https://survey.quanttide.com/abc123
->
-> 问卷大约需要15-20分钟，请基于真实想法认真作答。这是进入筛选流程的必要条件。未在3个工作日内提交的，申请将被视为未完成。仅提醒一次。
->
-> 量潮招聘
-
-模板中的 `{{name}}` 和 `{{link}}` 会自动替换为 `--name` 和 `--link` 参数的值。
-
 ## 获取问卷链接
 
 问卷链接可通过以下方式获取：
@@ -95,6 +51,50 @@ qtrecurit access survey --to candidate@example.com --name 张三 --link https://
 1. `--link` 参数指定的链接（最高优先级）
 2. 本地缓存的链接
 3. 自动从 HR 邮箱获取（并缓存）
+
+## 获取候选人信息
+
+候选人的邮箱地址和姓名从 HR 邮箱收到的投递邮件中获取：
+
+```bash
+# 查看最近的投递邮件
+lark-cli mail +triage --mailbox hr@quanttide.com --max 10
+
+# 搜索特定候选人的邮件
+lark-cli mail +triage --mailbox hr@quanttide.com --query "候选人姓名"
+```
+
+邮件主题通常包含候选人姓名和应聘岗位，例如「数据工程师-张三-清华大学-6个月」。
+
+## 发送问卷邮件
+
+```bash
+qtrecurit access survey \
+  --to candidate@example.com \
+  --name 张三 \
+  --link https://survey.quanttide.com/abc123
+```
+
+CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人姓名和问卷链接填入对应位置，然后通过 `lark-cli` 从 `hr@quanttide.com` 邮箱发出。
+
+### 参数说明
+
+- `--to`（必填）候选人邮箱地址
+- `--name`（必填）候选人姓名
+- `--link`（可选）准入问卷链接，留空时自动从缓存或 HR 邮箱获取
+- `--dry-run`（可选）只打印将执行的 `lark-cli` 命令，不实际执行
+
+## 邮件内容
+
+发送的邮件使用内置的 `survey` 话术模板，内容如下：
+
+> 张三你好，感谢你对量潮科技的关注与投递。在继续招聘流程之前，请先完成以下准入问卷：https://survey.quanttide.com/abc123
+>
+> 问卷大约需要15-20分钟，请基于真实想法认真作答。这是进入筛选流程的必要条件。未在3个工作日内提交的，申请将被视为未完成。仅提醒一次。
+>
+> 量潮招聘
+
+模板中的 `{{name}}` 和 `{{link}}` 会自动替换为 `--name` 和 `--link` 参数的值。
 
 ## 常见问题
 
