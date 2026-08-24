@@ -54,7 +54,7 @@ CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人�
 - `--link`（可选）准入问卷链接，留空时自动从缓存或 HR 邮箱获取
 - `--dry-run`（可选）只打印将执行的 `lark-cli` 命令，不实际执行
 
-## 邮件内容
+### 邮件内容
 
 发送的邮件使用内置的 `survey` 话术模板，内容如下：
 
@@ -65,3 +65,15 @@ CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人�
 > 量潮招聘
 
 模板中的 `{{name}}` 和 `{{link}}` 会自动替换为 `--name` 和 `--link` 参数的值。
+
+## 验证发送结果
+
+发送邮件后，可通过以下方式验证：
+
+```bash
+# 查看最近发送的邮件
+lark-cli mail +triage --mailbox hr@quanttide.com --query "量潮科技准入问卷" --max 5
+
+# 查看特定邮件的详细内容
+lark-cli mail +messages --mailbox hr@quanttide.com --message-ids "<message_id>" --format json
+```
