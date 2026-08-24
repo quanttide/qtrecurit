@@ -121,6 +121,36 @@ pub fn fetch_folder_id_from_email(name: &str) -> Result<String> {
     anyhow::bail!("未找到名为 '{}' 的文件夹", name)
 }
 
+// ── 模板数据源缓存 ────────────────────────────────────────────────
+
+/// 读取缓存的模板数据源 URL
+pub fn get_template_source(name: &str) -> Option<String> {
+    let path = cache_dir().ok()?.join(format!("template_source_{}", name));
+    fs::read_to_string(&path)
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+/// 写入模板数据源 URL 到缓存
+pub fn set_template_source(name: &str, url: &str) -> Result<()> {
+    let dir = ensure_cache_dir()?;
+    let path = dir.join(format!("template_source_{}", name));
+    fs::write(&path, url)
+        .context(format!("写入缓存失败: {}", path.display()))?;
+    Ok(())
+}
+
+/// 清除模板数据源缓存
+pub fn clear_template_source(name: &str) -> Result<()> {
+    let path = cache_dir()?.join(format!("template_source_{}", name));
+    if path.exists() {
+        fs::remove_file(&path)
+            .context(format!("删除缓存失败: {}", path.display()))?;
+    }
+    Ok(())
+}
+
 /// 从 HR 邮箱获取最新的问卷链接
 pub fn fetch_survey_url_from_email() -> Result<String> {
     use super::email::run_lark_json;

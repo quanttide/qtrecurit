@@ -41,6 +41,12 @@ pub enum CacheAction {
     ShowFolderId(ShowFolderIdArgs),
     /// 清除文件夹 ID 缓存
     ClearFolderId(ClearFolderIdArgs),
+    /// 设置模板数据源 URL
+    SetTemplateSource(SetTemplateSourceArgs),
+    /// 查看当前缓存的模板数据源 URL
+    ShowTemplateSource(ShowTemplateSourceArgs),
+    /// 清除模板数据源缓存
+    ClearTemplateSource(ClearTemplateSourceArgs),
 }
 
 #[derive(Args)]
@@ -60,6 +66,30 @@ pub struct ShowFolderIdArgs {
 #[derive(Args)]
 pub struct ClearFolderIdArgs {
     /// 文件夹名称（如：sent-survey）
+    #[arg(long)]
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct SetTemplateSourceArgs {
+    /// 模板名称（如：invite）
+    #[arg(long)]
+    pub name: String,
+    /// 数据源 URL
+    #[arg(long)]
+    pub url: String,
+}
+
+#[derive(Args)]
+pub struct ShowTemplateSourceArgs {
+    /// 模板名称（如：invite）
+    #[arg(long)]
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct ClearTemplateSourceArgs {
+    /// 模板名称（如：invite）
     #[arg(long)]
     pub name: String,
 }
@@ -155,6 +185,34 @@ pub fn run() {
                     return;
                 }
                 println!("✓ 文件夹 '{}' 的 ID 缓存已清除", args.name);
+                Ok(())
+            }
+            CacheAction::SetTemplateSource(args) => {
+                if let Err(e) = crate::connect::cache::set_template_source(&args.name, &args.url) {
+                    eprintln!("缓存模板数据源失败: {}", e);
+                    return;
+                }
+                println!("✓ 模板 '{}' 数据源已缓存: {}", args.name, args.url);
+                Ok(())
+            }
+            CacheAction::ShowTemplateSource(args) => {
+                match crate::connect::cache::get_template_source(&args.name) {
+                    Some(url) => {
+                        println!("{}", url);
+                        Ok(())
+                    }
+                    None => {
+                        eprintln!("缓存中没有模板 '{}' 的数据源。", args.name);
+                        Ok(())
+                    }
+                }
+            }
+            CacheAction::ClearTemplateSource(args) => {
+                if let Err(e) = crate::connect::cache::clear_template_source(&args.name) {
+                    eprintln!("清除缓存失败: {}", e);
+                    return;
+                }
+                println!("✓ 模板 '{}' 数据源缓存已清除", args.name);
                 Ok(())
             }
         },
