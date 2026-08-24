@@ -1,0 +1,170 @@
+//! XDG 兼容的本地缓存模块。
+//!
+//! 缓存目录遵循 XDG Base Directory Specification：
+//! - Linux/macOS: `~/.cache/qtrecurit/`
+//! - 可通过 `XDG_CACHE_HOME` 环境变量覆盖
+//!
+//! 缓存内容：
+//! - `survey_url` - 最新的准入问卷链接
+
+use std::fs;
+use std::path::PathBuf;
+
+use anyhow::{Context, Result};
+
+/// 获取缓存目录路径
+pub fn cache_dir() -> Result<PathBuf> {
+    // 优先使用环境变量
+    if let Ok(env_dir) = std::env::var("XDG_CACHE_HOME") {
+        return Ok(PathBuf::from(env_dir).join("qtrecurit"));
+    }
+    
+    // 回退到默认路径
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .context("无法获取用户主目录")?;
+    
+    Ok(PathBuf::from(home).join(".cache").join("qtrecurit"))
+}
+
+/// 确保缓存目录存在
+fn ensure_cache_dir() -> Result<PathBuf> {
+    let dir = cache_dir()?;
+    fs::create_dir_all(&dir)
+        .context(format!("创建缓存目录失败: {}", dir.display()))?;
+    Ok(dir)
+}
+
+/// 读取缓存的问卷链接
+pub fn get_survey_url() -> Option<String> {
+    let path = cache_dir().ok()?.join("survey_url");
+    fs::read_to_string(&path)
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+/// 写入问卷链接到缓存
+pub fn set_survey_url(url: &str) -> Result<()> {
+    let dir = ensure_cache_dir()?;
+    let path = dir.join("survey_url");
+    fs::write(&path, url)
+        .context(format!("写入缓存失败: {}", path.display()))?;
+    Ok(())
+}
+
+/// 清除问卷链接缓存
+pub fn clear_survey_url() -> Result<()> {
+    let path = cache_dir()?.join("survey_url");
+    if path.exists() {
+        fs::remove_file(&path)
+            .context(format!("删除缓存失败: {}", path.display()))?;
+    }
+    Ok(())
+}
+
+/// 从 HR 邮箱获取最新的问卷链接
+pub fn fetch_survey_url_from_email() -> Result<String> {
+    use super::email::run_lark_json;
+    use serde_json::Value;
+    
+    // 搜索包含 "准入问卷" 的邮件
+    let data: Value = run_lark_json(&[
+        "mail", "+triage",
+        "--mailbox", "hr@quanttide.com",
+        "--query", "准入问卷",
+        "--max", "10",
+        "--format", "json",
+    ])?;
+    
+    let messages = data["messages"]
+        .as_array()
+        .context("无法解析邮件列表")?;
+    
+    if messages.is_empty() {
+        anyhow::bail!("未找到包含准入问卷的邮件");
+    }
+    
+    // 遍历邮件查找问卷链接
+    for msg in messages {
+        let message_id = msg["message_id"]
+            .as_str()
+            .context("无法获取邮件 ID")?;
+        
+        // 获取邮件完整内容
+        let full_data: Value = run_lark_json(&[
+            "mail", "+messages",
+            "--mailbox", "hr@quanttide.com",
+            "--message-ids", message_id,
+            "--format", "json",
+        ])?;
+        
+        // 从正文中提取问卷链接
+        if let Some(messages) = full_data["data"]["messages"].as_array() {
+            for msg in messages {
+                if let Some(body) = msg["body_plain_text"].as_str() {
+                    // 查找飞书表单链接
+                    if let Some(url) = extract_survey_url(body) {
+                        return Ok(url);
+                    }
+                }
+            }
+        }
+    }
+    
+    anyhow::bail!("未在邮件中找到问卷链接")
+}
+
+/// 从文本中提取问卷链接
+fn extract_survey_url(text: &str) -> Option<String> {
+    // 查找飞书多维表格表单链接
+    let patterns = [
+        "https://quanttide.feishu.cn/share/base/form/",
+        "https://quanttide.larksuite.com/share/base/form/",
+    ];
+    
+    for pattern in patterns {
+        if let Some(start) = text.find(pattern) {
+            let remaining = &text[start..];
+            // 找到链接结尾（空格、换行、引号等）
+            let end = remaining.find(|c: char| c.is_whitespace() || c == '"' || c == '>' || c == '<')
+                .unwrap_or(remaining.len());
+            let url = &remaining[..end];
+            // 移除末尾可能的标点
+            let url = url.trim_end_matches(|c: char| c == '.' || c == ')' || c == '!' || c == '。');
+            if url.starts_with(pattern) {
+                return Some(url.to_string());
+            }
+        }
+    }
+    
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_survey_url() {
+        let text = "请完成准入问卷：https://quanttide.feishu.cn/share/base/form/shrcn7RjQlUfhtS2PMophVyXm2j 问卷大约需要15-20分钟";
+        let url = extract_survey_url(text);
+        assert!(url.is_some());
+        assert_eq!(url.unwrap(), "https://quanttide.feishu.cn/share/base/form/shrcn7RjQlUfhtS2PMophVyXm2j");
+    }
+
+    #[test]
+    fn test_extract_survey_url_with_punctuation() {
+        let text = "请访问 https://quanttide.feishu.cn/share/base/form/abc123。";
+        let url = extract_survey_url(text);
+        assert!(url.is_some());
+        assert_eq!(url.unwrap(), "https://quanttide.feishu.cn/share/base/form/abc123");
+    }
+
+    #[test]
+    fn test_extract_survey_url_not_found() {
+        let text = "这是一段没有链接的文本";
+        let url = extract_survey_url(text);
+        assert!(url.is_none());
+    }
+}
