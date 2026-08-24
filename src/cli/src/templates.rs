@@ -9,7 +9,6 @@
 
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
 
 use once_cell::sync::Lazy;
 
@@ -89,13 +88,15 @@ fn find_template_dir() -> std::path::PathBuf {
         return std::path::PathBuf::from(env_dir);
     }
     
-    // 尝试相对路径（开发环境）
-    let dev_path = Path::new("templates");
-    if dev_path.exists() {
-        return dev_path.to_path_buf();
+    // 开发环境：使用 CARGO_MANIFEST_DIR 定位源码目录
+    if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+        let src_path = std::path::PathBuf::from(manifest_dir).join("src/templates");
+        if src_path.exists() {
+            return src_path;
+        }
     }
     
-    // 尝试相对于可执行文件的路径（生产环境）
+    // 生产环境：相对于可执行文件的路径
     if let Ok(exe_path) = std::env::current_exe() {
         if let Some(exe_dir) = exe_path.parent() {
             let prod_path = exe_dir.join("templates");

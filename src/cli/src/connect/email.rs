@@ -141,7 +141,7 @@ pub fn send_mail(
     subject: &str,
     body: &str,
     attach: Option<&str>,
-    template: &str,
+    _template: &str,
     confirm_send: bool,
     dry_run: bool,
 ) -> Result<(String, bool)> {
@@ -180,22 +180,6 @@ pub fn send_mail(
         .or_else(|| data["data"]["message_id"].as_str())
         .unwrap_or("")
         .to_string();
-
-    // 通道内部写发送日志（fail-closed 语义：写失败显式警告，不阻塞发送）
-    let status = if confirm_send { "sent" } else { "draft" };
-    let entry = SendLogEntry {
-        time: chrono::Local::now().to_rfc3339(),
-        to: to.to_string(),
-        subject: subject.to_string(),
-        template: template.to_string(),
-        status: status.to_string(),
-        draft_id: id.clone(),
-        note: None,
-    };
-    if let Err(e) = append_send_log(None, &entry) {
-        eprintln!("警告: 发送日志写入失败（发送本身已成功）: {e:#}");
-        eprintln!("请手动补记: {}", serde_json::to_string(&entry).unwrap_or_default());
-    }
 
     Ok((id, confirm_send))
 }
@@ -640,7 +624,7 @@ pub fn mark_as_read(message_id: &str, dry_run: bool) -> Result<()> {
 }
 
 /// 验证邮件是否成功发送，返回验证结果
-pub fn verify_sent_mail(to: &str, subject: &str) -> Result<VerifyResult> {
+pub fn verify_sent_mail(_to: &str, subject: &str) -> Result<VerifyResult> {
     let data: Value = run_lark_json(&[
         "mail", "+triage",
         "--mailbox", "hr@quanttide.com",
