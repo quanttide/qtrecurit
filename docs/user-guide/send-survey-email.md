@@ -59,11 +59,13 @@ CLI 会渲染内置的话术模板，通过 `hr@quanttide.com` 发出问卷通�
 
 ## 验证发送结果
 
-```bash
-lark-cli mail +triage --mailbox hr@quanttide.com --query "量潮科技准入问卷" --max 5
+CLI 会在发送后自动验证邮件是否成功，并在输出中返回结果：
+
+```
+✓ 已发送 | 收件人: candidate@example.com | 邮件已发送，message_id: xxx
 ```
 
-查看已发送问卷文件夹中的邮件：
+如需手动查看已发送问卷文件夹中的邮件：
 
 ```bash
 FOLDER_ID=$(qtrecurit cache show-folder-id --name "已发送问卷")
