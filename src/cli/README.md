@@ -62,8 +62,10 @@ qtrecurit report
 
 命令按「名词域 + 动词动作」组织：`report` / `refer` / `access`（域），access 下
 `survey` / `invite` / `assess` / `interview`（动作）。发送日志由
-`connect/email.rs::send_mail` 内部处理（业务命令不感知）；沟通话术见
-`src/templates.rs`（严格照业务实体手册 `qtrecurit/connect/content.md`）。
+`connect/email.rs::send_mail` 内部处理（业务命令不感知）；沟通话术存储在
+`templates/` 目录下的文本文件中（严格照业务实体手册 `qtrecurit/connect/content.md`）。
+
+模板文件格式：第一行为邮件主题，其余为邮件正文。支持 `{{variable}}` 占位符变量。
 
 ## 数据流
 
@@ -91,3 +93,20 @@ Lark 邮箱 → 分页拉取（fetch_all_meta）
 cargo test     # 70 测试
 cargo build    # 编译
 ```
+
+## 模板系统
+
+邮件话术模板存储在 `templates/` 目录下，每个模板为独立的文本文件：
+
+- `survey.txt` - 准入问卷发放
+- `invite.txt` - 实训邀请
+- `exam.txt` - 笔试邀请
+- `interview.txt` - 面试通知
+
+模板文件格式：
+```
+第一行：邮件主题
+其余行：邮件正文（支持 {{variable}} 占位符）
+```
+
+运行时通过环境变量 `QTRECURIT_TEMPLATES_DIR` 可指定模板目录路径。
