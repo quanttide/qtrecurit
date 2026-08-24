@@ -6,8 +6,21 @@
 
 1. 已安装 `lark-cli` 并完成登录认证
 2. 已构建 `qtrecurit` CLI
-3. 候选人的邮箱地址、姓名
-4. 准入问卷链接（可选，可从缓存或 HR 邮箱自动获取）
+3. 准入问卷链接（可选，可从缓存或 HR 邮箱自动获取）
+
+## 获取候选人信息
+
+候选人的邮箱地址和姓名从 HR 邮箱收到的投递邮件中获取：
+
+```bash
+# 查看最近的投递邮件
+lark-cli mail +triage --mailbox hr@quanttide.com --max 10
+
+# 搜索特定候选人的邮件
+lark-cli mail +triage --mailbox hr@quanttide.com --query "候选人姓名"
+```
+
+邮件主题通常包含候选人姓名和应聘岗位，例如「数据工程师-张三-清华大学-6个月」。
 
 ## 发送问卷邮件
 
@@ -20,7 +33,7 @@ qtrecurit access survey \
 
 CLI 会渲染内置的「量潮科技准入问卷」话术模板，将候选人姓名和问卷链接填入对应位置，然后通过 `lark-cli` 从 `hr@quanttide.com` 邮箱发出。
 
-参数说明：
+### 参数说明
 
 - `--to`（必填）候选人邮箱地址
 - `--name`（必填）候选人姓名
