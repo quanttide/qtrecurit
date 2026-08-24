@@ -1,30 +1,18 @@
 //! 凭证化人才推荐：生成凭证号 → 推荐信 → 发送 → 写台账。
 //!
-//! 业务归属：招聘域（qtrecurit）。发送动作经 qtcloud-connect-send 通道完成，
+//! 招聘域业务命令（动词命名）：一个命令完成一个完整业务动作。
+//! 发送经 connect::email::send_mail 通道（发送日志由通道内部处理），
 //! 台账（referrals.csv）归招聘数据。
-//! 迁移自 qtcloud-connect CLI（issue #1），凭证号与台账格式保持。
 
 use anyhow::{Context, Result};
 use chrono::Local;
 use clap::Args;
 use std::path::PathBuf;
 
-use crate::connect::email::{SendLogEntry, append_send_log, send_mail};
+use crate::connect::email::send_mail;
 
 #[derive(Args)]
-pub struct ReferralArgs {
-    #[command(subcommand)]
-    pub action: ReferralAction,
-}
-
-#[derive(clap::Subcommand)]
-pub enum ReferralAction {
-    /// 凭证化推荐：生成凭证号 → 草稿 → 确认 → 发送 → 写台账
-    Send(ReferralSendArgs),
-}
-
-#[derive(Args)]
-pub struct ReferralSendArgs {
+pub struct ReferArgs {
     /// 候选人姓名
     #[arg(long)]
     pub name: String,
@@ -101,13 +89,7 @@ pub fn append_referral_csv(csv: Option<&str>, row: &[&str]) -> Result<()> {
     Ok(())
 }
 
-pub fn run(args: &ReferralArgs) -> Result<()> {
-    match &args.action {
-        ReferralAction::Send(a) => cmd_send(a),
-    }
-}
-
-fn cmd_send(args: &ReferralSendArgs) -> Result<()> {
+pub fn run(args: &ReferArgs) -> Result<()> {
     let now = Local::now();
     let seq = (now.timestamp() % 1000) as u32;
     let code = gen_referral_code(now, seq);
@@ -121,70 +103,55 @@ fn cmd_send(args: &ReferralSendArgs) -> Result<()> {
     println!("企业:   {}", args.company);
     println!();
 
-    match send_mail(
+    let (_id, sent) = send_mail(
         &args.candidate_email,
         &subject,
         &body,
         None,
+        "referral",
         args.confirm_send,
         args.dry_run,
-    ) {
-        Ok((id, sent)) => {
-            let status = if args.dry_run {
-                "dry-run".to_string()
-            } else if sent {
-                "sent".to_string()
-            } else {
-                "draft".to_string()
-            };
-            println!(
-                "{} 凭证 {} | 状态: {}",
-                if args.dry_run {
-                    "[dry-run]"
-                } else if sent {
-                    "✓ 已发送"
-                } else {
-                    "✓ 已生成草稿"
-                },
-                code,
-                status
-            );
+    )
+    .context("发送推荐信失败")?;
 
-            // 回写台账（发送动作与台账联动，fail-closed）
-            if !args.dry_run {
-                let row = [
-                    &code,
-                    &now.format("%Y-%m-%d").to_string(),
-                    &args.name,
-                    &args.candidate_email,
-                    &args.company,
-                    "",
-                    "",
-                    &status,
-                    "",
-                ];
-                append_referral_csv(args.csv.as_deref(), &row)
-                    .context("台账写入失败（fail-closed，不会假装成功）")?;
-                println!("✓ 台账已更新");
+    let status = if args.dry_run {
+        "dry-run".to_string()
+    } else if sent {
+        "sent".to_string()
+    } else {
+        "draft".to_string()
+    };
+    println!(
+        "{} 凭证 {} | 状态: {}",
+        if args.dry_run {
+            "[dry-run]"
+        } else if sent {
+            "✓ 已发送"
+        } else {
+            "✓ 已生成草稿"
+        },
+        code,
+        status
+    );
 
-                // 发送日志（只记元数据）
-                let entry = SendLogEntry {
-                    time: now.to_rfc3339(),
-                    to: args.candidate_email.clone(),
-                    subject: subject.clone(),
-                    template: "referral".into(),
-                    status,
-                    draft_id: id,
-                    note: Some(format!("凭证 {code}")),
-                };
-                if let Err(e) = append_send_log(None, &entry) {
-                    eprintln!("警告: 发送日志写入失败: {e:#}");
-                }
-            }
-            Ok(())
-        }
-        Err(e) => Err(e.context("发送推荐信失败")),
+    // 回写台账（发送动作与台账联动，fail-closed）
+    if !args.dry_run {
+        let row = [
+            &code,
+            &now.format("%Y-%m-%d").to_string(),
+            &args.name,
+            &args.candidate_email,
+            &args.company,
+            "",
+            "",
+            &status,
+            "",
+        ];
+        append_referral_csv(args.csv.as_deref(), &row)
+            .context("台账写入失败（fail-closed，不会假装成功）")?;
+        println!("✓ 台账已更新");
     }
+    Ok(())
 }
 
 #[cfg(test)]

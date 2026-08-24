@@ -134,11 +134,14 @@ fn run_lark_raw(args: &[&str]) -> Result<std::process::Output> {
 
 /// 发送邮件。默认生成草稿；confirm_send 时确认后直接发送。
 /// 返回 (draft_id 或 message_id, 是否实际发送)。
+///
+/// 发送日志（元数据）由通道内部写入，业务命令不感知。
 pub fn send_mail(
     to: &str,
     subject: &str,
     body: &str,
     attach: Option<&str>,
+    template: &str,
     confirm_send: bool,
     dry_run: bool,
 ) -> Result<(String, bool)> {
@@ -177,6 +180,23 @@ pub fn send_mail(
         .or_else(|| data["data"]["message_id"].as_str())
         .unwrap_or("")
         .to_string();
+
+    // 通道内部写发送日志（fail-closed 语义：写失败显式警告，不阻塞发送）
+    let status = if confirm_send { "sent" } else { "draft" };
+    let entry = SendLogEntry {
+        time: chrono::Local::now().to_rfc3339(),
+        to: to.to_string(),
+        subject: subject.to_string(),
+        template: template.to_string(),
+        status: status.to_string(),
+        draft_id: id.clone(),
+        note: None,
+    };
+    if let Err(e) = append_send_log(None, &entry) {
+        eprintln!("警告: 发送日志写入失败（发送本身已成功）: {e:#}");
+        eprintln!("请手动补记: {}", serde_json::to_string(&entry).unwrap_or_default());
+    }
+
     Ok((id, confirm_send))
 }
 

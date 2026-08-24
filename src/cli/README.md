@@ -5,37 +5,27 @@
 ## 安装
 
 ```bash
-cargo install --path .
+cargo install qtrecurit-cli
 ```
 
 需要系统中安装 `lark-cli`（用于邮件获取/发送）和 `curl`（用于附件下载）。
 
 ## 用法
 
+命令按招聘业务动作命名（动词）：
+
 ```bash
-# 查看招聘统计数据（基于 Lark 邮箱）
-qtrecurit status
+# 生成招聘统计报告（基于 Lark 邮箱）
+qtrecurit report
 
 # 指定日期范围
-qtrecurit status --days 30
-qtrecurit status --start 2026-06-01 --end 2026-06-30
+qtrecurit report --days 30
+qtrecurit report --start 2026-06-01 --end 2026-06-30
 
 # 凭证化人才推荐（凭证号 REF-YYYYMMDD-NNN → 推荐信 → 草稿 → 确认 → 发送 → 台账）
-qtrecurit referral send --name 张三 --candidate-email wu@example.com --company 示例企业
-qtrecurit referral send --name 张三 --candidate-email wu@example.com --company 示例企业 --confirm-send
-qtrecurit referral send --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
-
-# 招聘沟通邮件（话术模板：referral 内推 / training 实训邀请 / exam 考核说明）
-qtrecurit mail send --to 候选人@example.com --template exam
-qtrecurit mail send --to a@x.com --template training --vars name=张三
-qtrecurit mail send --to x@example.com --template referral --confirm-send
-
-# 模板管理
-qtrecurit mail template --list
-qtrecurit mail template --name exam
-
-# 发送日志（只记元数据：时间/收件人/主题/状态，不记正文）
-qtrecurit mail log --tail 20
+qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业
+qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --confirm-send
+qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
 ```
 
 输出包含：
@@ -47,10 +37,11 @@ qtrecurit mail log --tail 20
 ## 架构
 
 ```
-qtrecurit status
-  ├── connect/email.rs    — 邮件拉取管道（Lark Mail）
-  │   ├── EmailFetcher     — trait 抽象
+qtrecurit report
+  ├── connect/email.rs    — 邮件拉取/发送管道（Lark Mail，收发一体）
+  │   ├── EmailFetcher     — trait 抽象（收件）
   │   ├── LarkCliFetcher   — lark-cli 实现
+  │   ├── send_mail        — 发送通道（草稿/确认，内部写发送日志）
   │   ├── fetch_all_meta   — 分页拉取收件箱/发件箱
   │   ├── fetch_full       — 批量下载完整正文
   │   └── 游标 + 缓存     — 增量同步
@@ -62,8 +53,8 @@ qtrecurit status
   └── funnel.rs            — 招聘漏斗分析（关键词匹配）
 ```
 
-`referral`（凭证化推荐）与 `mail`（招聘沟通邮件）业务归属招聘域，收发一体走
-`connect/email.rs`（lark-cli 封装），模板机制与话术内容见 `src/templates.rs`。
+业务命令（`report` / `refer`）按招聘业务动作命名，发送日志由 `connect/email.rs::send_mail`
+内部处理（业务命令不感知）；模板机制见 `src/templates.rs`（不写具体话术内容）。
 
 ## 数据流
 
@@ -88,6 +79,6 @@ Lark 邮箱 → 分页拉取（fetch_all_meta）
 ## 开发
 
 ```bash
-cargo test     # 61 测试
+cargo test     # 70 测试
 cargo build    # 编译
 ```

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [0.1.0-alpha.5] - 2026-08-24
+
+### Changed
+
+- 命令按招聘业务动作动词化：`status` → `report`、`referral send` → `refer`
+- 删除通用 `mail` 命令（通道能力不属业务域），话术模板内容移除（模板机制保留）
+- 发送日志由 `send_mail` 通道内部处理，业务命令不感知
+
+### Removed
+
+- `mail` 命令（send/template/log）与三套话术模板内容
+
 ## [0.1.0-alpha.4] - 2026-08-24
 
 ### Changed

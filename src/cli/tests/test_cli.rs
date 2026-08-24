@@ -13,9 +13,13 @@ fn test_version() {
 }
 
 #[test]
-fn test_status_help() {
+fn test_report_help() {
     let mut cmd = Command::cargo_bin("qtrecurit").unwrap();
-    cmd.args(["status", "--help"]).assert().success();
+    cmd.args(["report", "--help"]).assert().success();
 }
 
-
+#[test]
+fn test_refer_help() {
+    let mut cmd = Command::cargo_bin("qtrecurit").unwrap();
+    cmd.args(["refer", "--help"]).assert().success();
+}

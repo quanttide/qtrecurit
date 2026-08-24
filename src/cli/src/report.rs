@@ -1,13 +1,13 @@
 use anyhow::Result;
 
-use crate::cli::StatusArgs;
+use crate::cli::ReportArgs;
 use crate::connect::EmailFetcher;
 use crate::connect::email;
 use crate::human;
 
 /// 步骤一（connect）：获取邮件并解析日期范围
 fn step_fetch(
-    args: &StatusArgs,
+    args: &ReportArgs,
 ) -> Result<(
     Vec<email::MailItem>,
     Option<chrono::NaiveDate>,
@@ -38,7 +38,7 @@ fn step_report(
     report
 }
 
-pub fn run(args: &StatusArgs) -> Result<()> {
+pub fn run(args: &ReportArgs) -> Result<()> {
     let (items, start, end) = step_fetch(args)?;
     let report = step_report(&items, start, end, args.days);
     print!("{}", report);
