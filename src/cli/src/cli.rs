@@ -47,6 +47,12 @@ pub enum CacheAction {
     ShowTemplateSource(ShowTemplateSourceArgs),
     /// 清除模板数据源缓存
     ClearTemplateSource(ClearTemplateSourceArgs),
+    /// 设置实训基地群二维码图片路径
+    SetQr(SetQrArgs),
+    /// 查看当前缓存的二维码图片路径
+    ShowQr,
+    /// 清除二维码图片缓存
+    ClearQr,
 }
 
 #[derive(Args)]
@@ -92,6 +98,12 @@ pub struct ClearTemplateSourceArgs {
     /// 模板名称（如：invite）
     #[arg(long)]
     pub name: String,
+}
+
+#[derive(Args)]
+pub struct SetQrArgs {
+    /// 二维码图片文件路径
+    pub path: String,
 }
 
 #[derive(Args)]
@@ -213,6 +225,34 @@ pub fn run() {
                     return;
                 }
                 println!("✓ 模板 '{}' 数据源缓存已清除", args.name);
+                Ok(())
+            }
+            CacheAction::SetQr(args) => {
+                if let Err(e) = crate::connect::cache::set_qr(&args.path) {
+                    eprintln!("缓存二维码失败: {}", e);
+                    return;
+                }
+                println!("✓ 二维码图片已缓存: {}", args.path);
+                Ok(())
+            }
+            CacheAction::ShowQr => {
+                match crate::connect::cache::get_qr() {
+                    Some(path) => {
+                        println!("当前缓存的二维码图片: {}", path);
+                        Ok(())
+                    }
+                    None => {
+                        eprintln!("缓存中没有二维码图片。请运行 'qtrecurit cache set-qr <图片路径>' 设置。");
+                        Ok(())
+                    }
+                }
+            }
+            CacheAction::ClearQr => {
+                if let Err(e) = crate::connect::cache::clear_qr() {
+                    eprintln!("清除缓存失败: {}", e);
+                    return;
+                }
+                println!("✓ 二维码图片缓存已清除");
                 Ok(())
             }
         },

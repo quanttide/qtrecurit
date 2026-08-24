@@ -3,7 +3,9 @@
 //! 话术见 templates.rs（源自业务实体手册 qtrecurit/connect/content.md），
 //! 发送经 connect::email::send_mail 通道（日志由通道内部处理）。
 
-use anyhow::Result;
+use std::path::Path;
+
+use anyhow::{Context, Result};
 use clap::Args;
 
 use crate::connect::email::send_mail;
@@ -33,15 +35,47 @@ pub fn run(args: &InviteArgs) -> Result<()> {
         .expect("invite 模板必须存在（templates.rs TEMPLATES）");
     let body = render_template(tpl, &[("name".to_string(), args.name.clone())]);
 
-    let (_id, sent) = send_mail(
+    // 二维码路径优先级：--qr 参数 > 本地缓存
+    let qr_path = match &args.qr {
+        Some(path) => Some(path.clone()),
+        None => crate::connect::cache::get_qr(),
+    };
+
+    // lark-cli 不支持绝对路径，需要切换工作目录
+    let mut _original_dir = None;
+    let qr_file = match &qr_path {
+        Some(path) => {
+            let src = Path::new(path);
+            if src.is_absolute() {
+                let cache_dir = src.parent().context("无法获取缓存目录")?;
+                let filename = src.file_name().context("无法获取文件名")?;
+                _original_dir = Some(std::env::current_dir()?);
+                std::env::set_current_dir(cache_dir)
+                    .context("切换工作目录失败")?;
+                Some(filename.to_string_lossy().to_string())
+            } else {
+                Some(path.clone())
+            }
+        }
+        None => None,
+    };
+
+    let result = send_mail(
         &args.to,
         &tpl.subject,
         &body,
-        args.qr.as_deref(),
+        qr_file.as_deref(),
         "invite",
-        false,
+        !args.dry_run, // 非 dry-run 时直接发送
         args.dry_run,
-    )?;
+    );
+
+    // 恢复原始工作目录
+    if let Some(original_dir) = _original_dir {
+        let _ = std::env::set_current_dir(original_dir);
+    }
+
+    let (_id, sent) = result?;
 
     let status = if args.dry_run {
         "dry-run".to_string()

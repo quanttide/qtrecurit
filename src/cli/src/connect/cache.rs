@@ -151,6 +151,50 @@ pub fn clear_template_source(name: &str) -> Result<()> {
     Ok(())
 }
 
+// ── 二维码图片缓存 ────────────────────────────────────────────────
+
+/// 读取缓存的二维码图片路径
+pub fn get_qr() -> Option<String> {
+    let path = cache_dir().ok()?.join("invite_qr");
+    fs::read_to_string(&path)
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+/// 写入二维码图片路径到缓存（同时复制图片到缓存目录）
+pub fn set_qr(src_path: &str) -> Result<()> {
+    let dir = ensure_cache_dir()?;
+    let dest = dir.join("invite_qr.png");
+    
+    // 复制图片文件到缓存目录
+    fs::copy(src_path, &dest)
+        .context(format!("复制二维码图片失败: {} -> {}", src_path, dest.display()))?;
+    
+    // 写入路径到缓存文件
+    let path = dir.join("invite_qr");
+    fs::write(&path, dest.to_str().unwrap_or_default())
+        .context(format!("写入缓存失败: {}", path.display()))?;
+    Ok(())
+}
+
+/// 清除二维码图片缓存
+pub fn clear_qr() -> Result<()> {
+    let dir = cache_dir()?;
+    let path = dir.join("invite_qr");
+    let img_path = dir.join("invite_qr.png");
+    
+    if img_path.exists() {
+        fs::remove_file(&img_path)
+            .context(format!("删除缓存图片失败: {}", img_path.display()))?;
+    }
+    if path.exists() {
+        fs::remove_file(&path)
+            .context(format!("删除缓存失败: {}", path.display()))?;
+    }
+    Ok(())
+}
+
 /// 从 HR 邮箱获取最新的问卷链接
 pub fn fetch_survey_url_from_email() -> Result<String> {
     use super::email::run_lark_json;

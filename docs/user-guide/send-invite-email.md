@@ -38,6 +38,23 @@ lark-cli base +record-list --base-token "<base_token>" --table-id "<table_id>" -
 qtrecurit cache set-template-source --name invite --url "<飞书文档地址>"
 ```
 
+### 缓存实训基地群二维码
+
+邀请邮件需要附带实训基地群二维码。首次使用时需要缓存二维码图片：
+
+```bash
+# 查看当前缓存的二维码
+qtrecurit cache show-qr
+
+# 缓存新的二维码图片
+qtrecurit cache set-qr /path/to/invite_qr.png
+
+# 清除二维码缓存
+qtrecurit cache clear-qr
+```
+
+二维码图片会缓存到 `~/.cache/qtrecurit/invite_qr.png`，发送邮件时自动作为附件。
+
 ## 第二步：对比找出未发送邀请的名单
 
 ### 获取已发送实训邀请名单
@@ -64,10 +81,32 @@ lark-cli mail +triage --mailbox hr@quanttide.com --filter "{\"folder\":\"$FOLDER
 
 ## 第三步：发送邀请邮件
 
+### 单个发送
+
 ```bash
 qtrecurit access invite \
   --to candidate@example.com \
   --name 张三
+```
+
+### 批量发送
+
+```bash
+# 方法1：使用循环
+candidates=(
+  "张三|zhangsan@example.com"
+  "李四|lisi@example.com"
+)
+
+for item in "${candidates[@]}"; do
+  IFS='|' read -r name email <<< "$item"
+  qtrecurit access invite --to "$email" --name "$name"
+  sleep 1  # 避免并发冲突
+done
+
+# 方法2：使用 xargs
+echo -e "张三|zhangsan@example.com\n李四|lisi@example.com" | \
+  xargs -I {} bash -c 'IFS="|" read -r name email <<< "{}"; qtrecurit access invite --to "$email" --name "$name"'
 ```
 
 CLI 会渲染内置的话术模板，通过 `hr@quanttide.com` 发出邀请邮件。
@@ -76,6 +115,7 @@ CLI 会渲染内置的话术模板，通过 `hr@quanttide.com` 发出邀请邮�
 
 - `--to`（必填）候选人邮箱地址
 - `--name`（必填）候选人姓名
+- `--qr`（可选）手动指定二维码图片路径，优先级高于缓存
 - `--dry-run`（可选）只打印将执行的命令，不实际执行
 
 ### 邮件内容
@@ -103,7 +143,7 @@ CLI 会渲染内置的话术模板，通过 `hr@quanttide.com` 发出邀请邮�
 CLI 会在发送后自动验证邮件是否成功，并在输出中返回结果：
 
 ```
-✓ 已发送 | 收件人: candidate@example.com | 邮件已发送，message_id: xxx
+✓ 已发送 | 收件人: candidate@example.com | 模板: invite | 状态: sent
 ```
 
 如需手动查看已发送邀请文件夹中的邮件：
@@ -111,4 +151,38 @@ CLI 会在发送后自动验证邮件是否成功，并在输出中返回结果�
 ```bash
 FOLDER_ID=$(qtrecurit cache show-folder-id --name "已发送实训邀请")
 lark-cli mail +triage --mailbox hr@quanttide.com --filter "{\"folder\":\"$FOLDER_ID\"}" --max 5
+```
+
+## 常见问题
+
+### 1. 发送失败：Concurrent write conflict
+
+lark-cli 存在并发写入限制。批量发送时建议每封邮件间隔 1-2 秒：
+
+```bash
+# 错误做法
+for item in ...; do qtrecurit access invite ...; done
+
+# 正确做法
+for item in ...; do qtrecurit access invite ...; sleep 1; done
+```
+
+### 2. 候选人邮箱缺失
+
+部分候选人通过飞书访客账号提交问卷，未留下邮箱。处理方式：
+1. 联系相关负责人补充邮箱
+2. 或跳过该候选人，后续单独处理
+
+### 3. 二维码图片过期
+
+实训基地群二维码有效期为1年。过期后需要：
+1. 在飞书群设置中生成新的二维码
+2. 更新缓存：`qtrecurit cache set-qr /path/to/new_qr.png`
+
+### 4. 查看当前缓存状态
+
+```bash
+qtrecurit cache show-survey      # 问卷链接
+qtrecurit cache show-qr          # 二维码图片
+qtrecurit cache show-folder-id --name "已发送实训邀请"  # 文件夹ID
 ```
