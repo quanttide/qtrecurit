@@ -655,6 +655,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "qtcloud-connect-send"
+version = "0.1.0"
+source = "git+https://github.com/quanttide/qtcloud-connect?tag=send%2Fv0.1.0#e80ab03d066a4d76512cd6d0aae539a706f0dd07"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "qtrecurit_cli"
 version = "0.0.1"
 dependencies = [
@@ -664,6 +675,7 @@ dependencies = [
  "clap",
  "dirs",
  "predicates",
+ "qtcloud-connect-send",
  "quanttide-agent",
  "regex",
  "serde",

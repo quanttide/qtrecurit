@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## [0.0.2] - 2026-08-24
+
+### Added
+
+- `referral.rs`：凭证化人才推荐（自 qtcloud-connect 迁入，issue #1）——凭证号 `REF-YYYYMMDD-NNN`、推荐信正文、台账 `referrals.csv`、fail-closed 写入
+- `mail.rs`：招聘沟通邮件命令（referral/training/exam 话术模板发送、模板查看、发送日志）
+- `templates.rs`：招聘话术模板（自 qtcloud-connect mail.rs 随业务迁入）
+- 依赖 `qtcloud-connect-send`（发送通道，qtcloud-connect 仓库 `src/send/`）
+
+### Changed
+
+- 测试从 61 增至 104
+- 发送通道复用 `qtcloud-connect-send`，不再各自封装 lark-cli 发件
+
+### Removed
+
+- 无
+
 ## [0.0.1] - 2026-07-03
 
 ### Added

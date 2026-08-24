@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-use crate::status;
+use crate::{mail, referral, status};
 
 #[derive(Parser)]
 #[command(name = "qtrecurit", version, about = "量潮招聘 CLI")]
@@ -13,6 +13,10 @@ pub struct Cli {
 pub enum Commands {
     /// 招聘数据统计（面向公开发文）
     Status(StatusArgs),
+    /// 凭证化人才推荐：凭证号 → 推荐信 → 发送 → 台账
+    Referral(referral::ReferralArgs),
+    /// 招聘沟通邮件：按话术模板发送/查看
+    Mail(mail::MailArgs),
 }
 
 #[derive(Args)]
@@ -31,12 +35,13 @@ pub struct StatusArgs {
 pub fn run() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Some(Commands::Status(args)) => {
-            if let Err(e) = status::run(args) {
-                eprintln!("错误: {}", e);
-            }
-        }
-        None => {}
+    let result = match &cli.command {
+        Some(Commands::Status(args)) => status::run(args),
+        Some(Commands::Referral(args)) => referral::run(args),
+        Some(Commands::Mail(args)) => mail::run(args),
+        None => Ok(()),
+    };
+    if let Err(e) = result {
+        eprintln!("错误: {e:#}");
     }
 }

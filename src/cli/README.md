@@ -8,7 +8,7 @@
 cargo install --path .
 ```
 
-需要系统中安装 `lark-cli`（用于邮件获取）和 `curl`（用于附件下载）。
+需要系统中安装 `lark-cli`（用于邮件获取/发送）和 `curl`（用于附件下载）。
 
 ## 用法
 
@@ -19,6 +19,23 @@ qtrecurit status
 # 指定日期范围
 qtrecurit status --days 30
 qtrecurit status --start 2026-06-01 --end 2026-06-30
+
+# 凭证化人才推荐（凭证号 REF-YYYYMMDD-NNN → 推荐信 → 草稿 → 确认 → 发送 → 台账）
+qtrecurit referral send --name 张三 --candidate-email wu@example.com --company 示例企业
+qtrecurit referral send --name 张三 --candidate-email wu@example.com --company 示例企业 --confirm-send
+qtrecurit referral send --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
+
+# 招聘沟通邮件（话术模板：referral 内推 / training 实训邀请 / exam 考核说明）
+qtrecurit mail send --to 候选人@example.com --template exam
+qtrecurit mail send --to a@x.com --template training --vars name=张三
+qtrecurit mail send --to x@example.com --template referral --confirm-send
+
+# 模板管理
+qtrecurit mail template --list
+qtrecurit mail template --name exam
+
+# 发送日志（只记元数据：时间/收件人/主题/状态，不记正文）
+qtrecurit mail log --tail 20
 ```
 
 输出包含：
@@ -44,6 +61,9 @@ qtrecurit status
   ├── human/report.rs      — Markdown 报告格式化
   └── funnel.rs            — 招聘漏斗分析（关键词匹配）
 ```
+
+`referral`（凭证化推荐）与 `mail`（招聘沟通邮件）业务归属招聘域，发送通道复用
+`qtcloud-connect-send`（lark-cli 封装，qtcloud-connect 仓库 src/send/），话术模板见 `src/templates.rs`。
 
 ## 数据流
 
