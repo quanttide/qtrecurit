@@ -4,8 +4,8 @@
 
 | 命令 | 用户文档 | 状态 |
 |------|----------|------|
-| `access survey` | [send-survey-email.md](docs/user-guide/send-survey-email.md) | ✓ 完整 |
-| `access invite` | [send-invite-email.md](docs/user-guide/send-invite-email.md) | ✓ 完整 |
+| `access survey` | [send-survey-email.md](../../docs/user-guide/send-survey-email.md) | ✓ 完整 |
+| `access invite` | [send-invite-email.md](../../docs/user-guide/send-invite-email.md) | ✓ 完整 |
 | `access exam` | 无 | ⚠ 需要打磨 |
 | `access interview` | 无 | ⚠ 需要打磨 |
 | `report` | 无 | ⚠ 需要打磨 |
