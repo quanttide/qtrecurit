@@ -6,7 +6,7 @@
 |------|----------|------|
 | `access survey` | [send-survey-email.md](../../docs/user-guide/send-survey-email.md) | ✓ 完整 |
 | `access invite` | [send-invite-email.md](../../docs/user-guide/send-invite-email.md) | ✓ 完整 |
-| `access exam` | 无 | ⚠ 需要打磨 |
+| `access exam` | [send-exam-email.md](../../docs/user-guide/send-exam-email.md) | ✓ 完整 |
 | `access interview` | 无 | ⚠ 需要打磨 |
 | `report` | 无 | ⚠ 需要打磨 |
 | `refer` | 无 | ⚠ 需要打磨 |
@@ -16,12 +16,13 @@
 
 ### 1. access exam（笔试邀请）
 
+**已完成：**
+- [x] 添加用户文档 `send-exam-email.md`
+
 **待完善项：**
-- [ ] 添加用户文档 `send-exam-email.md`
 - [ ] 完善话术模板，支持不同岗位的笔试题差异化
 - [ ] 支持附件（笔试题目文件）上传
 - [ ] 添加笔试截止时间参数
-- [ ] 自动归档已发送笔试邮件到专用文件夹
 - [ ] 笔试结果回收和状态跟踪
 
 ### 2. access interview（面试通知）
