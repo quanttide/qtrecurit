@@ -180,6 +180,56 @@
   margin: 0;
 }
 
+/* ===== 考核方式详情 ===== */
+
+.detail-toggle {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.detail-toggle:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.assessment-detail {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 16px;
+  box-shadow: var(--shadow);
+}
+
+.assessment-detail h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 20px;
+}
+
+.assessment-detail h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 20px 0 12px;
+}
+
+.assessment-detail p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
 /* ===== 响应式 ===== */
 
 @media (max-width: 640px) {
