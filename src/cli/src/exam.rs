@@ -6,7 +6,10 @@
 use anyhow::Result;
 use clap::Args;
 
-use crate::connect::{cache, email::{send_mail, find_candidate_submission, move_message_to_folder}};
+use crate::connect::{
+    cache,
+    email::{find_candidate_submission, move_message_to_folder, send_mail},
+};
 use crate::templates::{self, render_template};
 
 #[derive(Args)]
@@ -25,8 +28,8 @@ pub struct ExamArgs {
 }
 
 pub fn run(args: &ExamArgs) -> Result<()> {
-    let tpl = templates::find_template("exam")
-        .expect("exam 模板必须存在（templates.rs TEMPLATES）");
+    let tpl =
+        templates::find_template("exam").expect("exam 模板必须存在（templates.rs TEMPLATES）");
     let subject = tpl.subject.to_string();
     let body = render_template(tpl, &[("name".to_string(), args.name.clone())]);
 
@@ -76,12 +79,14 @@ fn archive_candidate_submission(candidate_email: &str) -> Result<()> {
     let folder_id = cache::get_folder_id("已发送笔试")
         .or_else(|| {
             eprintln!("缓存未命中，正在获取已发送笔试文件夹 ID...");
-            cache::fetch_folder_id_from_email("已发送笔试").ok().map(|id| {
-                if let Err(e) = cache::set_folder_id("已发送笔试", &id) {
-                    eprintln!("警告: 缓存文件夹 ID 失败: {}", e);
-                }
-                id
-            })
+            cache::fetch_folder_id_from_email("已发送笔试")
+                .ok()
+                .map(|id| {
+                    if let Err(e) = cache::set_folder_id("已发送笔试", &id) {
+                        eprintln!("警告: 缓存文件夹 ID 失败: {}", e);
+                    }
+                    id
+                })
         })
         .ok_or_else(|| anyhow::anyhow!("无法获取已发送笔试文件夹 ID"))?;
 
@@ -109,6 +114,6 @@ mod tests {
         let tpl = templates::find_template("exam").unwrap();
         assert_eq!(tpl.subject, "量潮招聘考核邀请");
         assert!(tpl.body.contains("实际成果为核心"));
-        assert!(tpl.body.contains("实训"));
+        assert!(tpl.body.contains("众包"));
     }
 }
