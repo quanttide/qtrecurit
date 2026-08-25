@@ -6,7 +6,7 @@
 use anyhow::Result;
 use clap::Args;
 
-use crate::connect::email::send_mail;
+use crate::connect::{cache, email::{send_mail, find_candidate_submission, move_message_to_folder}};
 use crate::templates;
 
 #[derive(Args)]
@@ -32,7 +32,7 @@ pub fn run(args: &ExamArgs) -> Result<()> {
         &body,
         None,
         "exam",
-        false,
+        !args.dry_run, // 非 dry-run 时直接发送
         args.dry_run,
     )?;
 
@@ -55,7 +55,45 @@ pub fn run(args: &ExamArgs) -> Result<()> {
         args.to,
         status
     );
+
+    // 归档候选人的投递邮件到「已发送笔试」文件夹
+    if sent && !args.dry_run {
+        if let Err(e) = archive_candidate_submission(&args.to) {
+            eprintln!("警告: 归档投递邮件失败: {e:#}");
+        }
+    }
+
     Ok(())
+}
+
+/// 归档候选人的投递邮件到「已发送笔试」文件夹
+fn archive_candidate_submission(candidate_email: &str) -> Result<()> {
+    // 获取文件夹 ID
+    let folder_id = cache::get_folder_id("已发送笔试")
+        .or_else(|| {
+            eprintln!("缓存未命中，正在获取已发送笔试文件夹 ID...");
+            cache::fetch_folder_id_from_email("已发送笔试").ok().map(|id| {
+                if let Err(e) = cache::set_folder_id("已发送笔试", &id) {
+                    eprintln!("警告: 缓存文件夹 ID 失败: {}", e);
+                }
+                id
+            })
+        })
+        .ok_or_else(|| anyhow::anyhow!("无法获取已发送笔试文件夹 ID"))?;
+
+    // 搜索候选人的投递邮件
+    match find_candidate_submission(candidate_email)? {
+        Some(message_id) => {
+            eprintln!("正在归档投递邮件: {}", message_id);
+            move_message_to_folder(&message_id, &folder_id, false)?;
+            eprintln!("✓ 投递邮件已归档到已发送笔试文件夹");
+            Ok(())
+        }
+        None => {
+            eprintln!("未找到候选人 {} 的投递邮件", candidate_email);
+            Ok(())
+        }
+    }
 }
 
 #[cfg(test)]

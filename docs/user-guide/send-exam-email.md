@@ -40,7 +40,7 @@ CLI 会渲染内置的话术模板，通过 `hr@quanttide.com` 发出考核邀�
 
 ### 自动归档
 
-发送考核邀请邮件后，CLI 会自动将候选人的投递邮件移动到「已发送考核邀请」文件夹。
+发送考核邀请邮件后，CLI 会自动将候选人的投递邮件移动到「已发送笔试」文件夹。
 
 ## 验证发送结果
 
@@ -50,10 +50,10 @@ CLI 会在发送后自动验证邮件是否成功，并在输出中返回结果�
 ✓ 已发送 | 收件人: candidate@example.com | 模板: exam | 状态: sent
 ```
 
-如需手动查看已发送考核邀请文件夹中的邮件：
+如需手动查看已发送笔试文件夹中的邮件：
 
 ```bash
-FOLDER_ID=$(qtrecurit cache show-folder-id --name "已发送考核邀请")
+FOLDER_ID=$(qtrecurit cache show-folder-id --name "已发送笔试")
 lark-cli mail +triage --mailbox hr@quanttide.com --filter "{\"folder\":\"$FOLDER_ID\"}" --max 5
 ```
 
@@ -84,5 +84,5 @@ for item in ...; do qtrecurit access exam ...; sleep 1; done
 ```bash
 qtrecurit cache show-survey      # 问卷链接
 qtrecurit cache show-qr          # 二维码图片
-qtrecurit cache show-folder-id --name "已发送考核邀请"  # 文件夹ID
+qtrecurit cache show-folder-id --name "已发送笔试"  # 文件夹ID
 ```
