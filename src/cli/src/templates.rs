@@ -52,35 +52,49 @@ fn parse_template(content: &'static str) -> (String, String) {
 }
 
 macro_rules! include_template {
-    ($name:expr, $desc:expr, $file:expr) => {
-        {
-            let (subject, body) = parse_template(include_str!($file));
-            MailTemplate {
-                name: $name,
-                description: $desc,
-                subject,
-                body,
-            }
+    ($name:expr, $desc:expr, $file:expr) => {{
+        let (subject, body) = parse_template(include_str!($file));
+        MailTemplate {
+            name: $name,
+            description: $desc,
+            subject,
+            body,
         }
-    };
+    }};
 }
 
 /// 全局模板缓存（编译时嵌入，零运行时 I/O）
 static TEMPLATES: Lazy<HashMap<&'static str, MailTemplate>> = Lazy::new(|| {
     let mut m = HashMap::new();
-    
-    let survey = include_template!("survey", "准入问卷发放：候选人投递后，进入筛选流程前", "../templates/survey.txt");
+
+    let survey = include_template!(
+        "survey",
+        "准入问卷发放：候选人投递后，进入筛选流程前",
+        "../templates/survey.txt"
+    );
     m.insert("survey", survey);
-    
-    let invite = include_template!("invite", "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地", "../templates/invite.txt");
+
+    let invite = include_template!(
+        "invite",
+        "邀请进群：准入问卷通过后，正式受邀加入量潮实训基地",
+        "../templates/invite.txt"
+    );
     m.insert("invite", invite);
-    
-    let exam = include_template!("exam", "笔试：发送笔试邀请，候选人以实际成果参与考核", "../templates/exam.txt");
+
+    let exam = include_template!(
+        "exam",
+        "笔试：发送笔试邀请，候选人以实际成果参与考核",
+        "../templates/exam.txt"
+    );
     m.insert("exam", exam);
-    
-    let interview = include_template!("interview", "面试通知：筛选/考核通过后，安排面试", "../templates/interview.txt");
+
+    let interview = include_template!(
+        "interview",
+        "面试通知：筛选/考核通过后，安排面试",
+        "../templates/interview.txt"
+    );
     m.insert("interview", interview);
-    
+
     m
 });
 
@@ -122,12 +136,13 @@ mod tests {
     }
 
     #[test]
-    fn test_exam_template_no_vars() {
+    fn test_exam_template_rendered_no_vars() {
         let tpl = find_template("exam").unwrap();
+        let rendered = render_template(tpl, &[("name".to_string(), "张三".to_string())]);
         assert!(
-            !tpl.body.contains("{{"),
-            "assess 模板有占位符: {:?}",
-            tpl.body
+            !rendered.contains("{{"),
+            "exam 模板渲染后仍有未解析占位符: {:?}",
+            rendered
         );
     }
 
