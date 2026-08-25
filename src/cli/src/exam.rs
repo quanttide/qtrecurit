@@ -7,13 +7,17 @@ use anyhow::Result;
 use clap::Args;
 
 use crate::connect::{cache, email::{send_mail, find_candidate_submission, move_message_to_folder}};
-use crate::templates;
+use crate::templates::{self, render_template};
 
 #[derive(Args)]
 pub struct ExamArgs {
     /// 候选人邮箱
     #[arg(long)]
     pub to: String,
+
+    /// 候选人姓名
+    #[arg(long)]
+    pub name: String,
 
     /// 发送前打印将执行的命令，不执行
     #[arg(long)]
@@ -24,7 +28,7 @@ pub fn run(args: &ExamArgs) -> Result<()> {
     let tpl = templates::find_template("exam")
         .expect("exam 模板必须存在（templates.rs TEMPLATES）");
     let subject = tpl.subject.to_string();
-    let body = tpl.body.to_string();
+    let body = render_template(tpl, &[("name".to_string(), args.name.clone())]);
 
     let (_id, sent) = send_mail(
         &args.to,
