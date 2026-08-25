@@ -24,7 +24,7 @@ function Intern() {
         <h2>报名方式</h2>
         <p>有意者请按要求完成求职信和简历，并将它们通过邮件发送到 hr@quanttide.com。</p>
         <p>邮件标题为 <strong>姓名-学校-应聘岗位</strong>，邮件正文写求职信，附件放简历。</p>
-        <p><a href="/intern/apply-guide">查看简历和求职信要求 →</a></p>
+        <p><a href="/intern/application">查看简历和求职信要求 →</a></p>
       </section>
 
       <section id="assessment" className="join-section">

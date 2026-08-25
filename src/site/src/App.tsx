@@ -3,7 +3,7 @@ import Home from './pages/Home'
 import Intern from './pages/Intern'
 import Parttime from './pages/Parttime'
 import Assessment from './pages/Assessment'
-import ApplicationGuide from './pages/ApplicationGuide'
+import Application from './pages/Application'
 import './App.css'
 
 // BrowserRouter（History 路由）：/intern、/parttime 独立 URL。
@@ -38,7 +38,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/intern" element={<Intern />} />
             <Route path="/intern/assessment" element={<Assessment />} />
-            <Route path="/intern/apply-guide" element={<ApplicationGuide />} />
+            <Route path="/intern/application" element={<Application />} />
             <Route path="/parttime" element={<Parttime />} />
           </Routes>
         </div>
