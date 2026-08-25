@@ -64,12 +64,9 @@ CLI 会渲染内置的话术模板，通过 `hr@quanttide.com` 发出考核邀�
 >
 > 无论你选择从考核、众包还是课堂开始，我们期待看到你创造的实际成果，也期待与你一起成长。
 
-### 自动归档
+### 归档
 
-发送考核邀请邮件后，CLI 会自动执行以下归档操作：
-
-1. 将候选人的投递邮件从「已发送实训邀请」文件夹移动到「已发送笔试」文件夹
-2. 更新候选人的状态为「已发送考核邀请」
+发送考核邀请邮件后，将候选人的投递邮件从「已发送实训邀请」文件夹移动到「已发送笔试」文件夹
 
 ```bash
 # 查看归档状态
@@ -79,45 +76,9 @@ lark-cli mail +triage --mailbox hr@quanttide.com --filter "{\"folder\":\"$FOLDER
 
 ## 验证发送结果
 
-CLI 会在发送后自动验证邮件是否成功，并在输出中返回结果：
-
-```
-✓ 已发送 | 收件人: candidate@example.com | 模板: exam | 状态: sent
-```
-
-如需手动查看已发送笔试文件夹中的邮件：
+查看已发送笔试文件夹中的邮件：
 
 ```bash
 FOLDER_ID=$(qtrecurit cache show-folder-id --name "已发送笔试")
 lark-cli mail +triage --mailbox hr@quanttide.com --filter "{\"folder\":\"$FOLDER_ID\"}" --max 5
-```
-
-## 常见问题
-
-### 1. 发送失败：Concurrent write conflict
-
-lark-cli 存在并发写入限制。批量发送时建议每封邮件间隔 1-2 秒：
-
-```bash
-# 错误做法
-for item in ...; do qtrecurit access exam ...; done
-
-# 正确做法
-for item in ...; do qtrecurit access exam ...; sleep 1; done
-```
-
-### 2. 候选人回复后的处理
-
-候选人收到考核邀请后，可能会回复确认参与意愿。此时需要：
-
-1. 确认候选人选择（考核 or 实训）
-2. 根据选择安排后续流程
-3. 将邮件移动到对应的文件夹进行归档
-
-### 3. 查看当前缓存状态
-
-```bash
-qtrecurit cache show-survey      # 问卷链接
-qtrecurit cache show-qr          # 二维码图片
-qtrecurit cache show-folder-id --name "已发送笔试"  # 文件夹ID
 ```

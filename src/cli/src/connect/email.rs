@@ -542,13 +542,25 @@ pub fn resolve_date_range(
 // ── 投递邮件搜索与归档 ─────────────────────────────────────────────
 
 /// 搜索候选人邮箱对应的投递邮件，返回最新的 message_id
+/// 
+/// 默认从「已发送实训邀请」文件夹搜索，如未找到则从收件箱搜索
 pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
-    let data: Value = run_lark_json(&[
+    // 先从「已发送实训邀请」文件夹搜索
+    let folder_id = crate::connect::cache::get_folder_id("已发送实训邀请");
+    let filter = folder_id.map(|id| format!(r#"{{"folder":"{}"}}"#, id));
+    
+    let mut args = vec![
         "mail", "+triage",
         "--mailbox", "hr@quanttide.com",
         "--max", "20",
         "--format", "json",
-    ])?;
+    ];
+    if let Some(ref filter_str) = filter {
+        args.push("--filter");
+        args.push(filter_str);
+    }
+    
+    let data: Value = run_lark_json(&args)?;
     
     let messages = data["messages"]
         .as_array()
@@ -564,6 +576,33 @@ pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
             if matched {
                 if let Some(message_id) = msg["message_id"].as_str() {
                     return Ok(Some(message_id.to_string()));
+                }
+            }
+        }
+    }
+    
+    // 如果从「已发送实训邀请」文件夹未找到，尝试从收件箱搜索
+    if filter.is_some() {
+        let data: Value = run_lark_json(&[
+            "mail", "+triage",
+            "--mailbox", "hr@quanttide.com",
+            "--max", "20",
+            "--format", "json",
+        ])?;
+        
+        let messages = data["messages"]
+            .as_array()
+            .context("无法解析邮件列表")?;
+        
+        for msg in messages {
+            if let Some(from) = msg["from"].as_str() {
+                let matched = from == email 
+                    || from.contains(&format!("<{}>", email))
+                    || from.starts_with(email);
+                if matched {
+                    if let Some(message_id) = msg["message_id"].as_str() {
+                        return Ok(Some(message_id.to_string()));
+                    }
                 }
             }
         }
