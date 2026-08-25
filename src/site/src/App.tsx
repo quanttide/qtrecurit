@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Home from './pages/Home'
 import Intern from './pages/Intern'
 import Parttime from './pages/Parttime'
+import Assessment from './pages/Assessment'
 import './App.css'
 
 // BrowserRouter（History 路由）：/intern、/parttime 独立 URL。
@@ -35,6 +36,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/intern" element={<Intern />} />
+            <Route path="/intern/assessment" element={<Assessment />} />
             <Route path="/parttime" element={<Parttime />} />
           </Routes>
         </div>
