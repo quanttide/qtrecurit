@@ -39,6 +39,7 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
     // 获取问卷链接：优先使用参数，其次从缓存获取，最后从 HR 邮箱获取
     let link = match &args.link {
         Some(link) => link.clone(),
+        None if args.dry_run => "https://example.com/survey-dry-run".to_string(),
         None => {
             cache::get_survey_url().or_else(|| {
                 eprintln!("缓存未命中，正在从 HR 邮箱获取问卷链接...");
