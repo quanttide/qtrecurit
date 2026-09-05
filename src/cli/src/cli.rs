@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-use crate::{access, refer, report};
+use crate::{access, inbox, refer, report};
 
 #[derive(Parser)]
 #[command(name = "qtrecurit", version, about = "量潮招聘 CLI")]
@@ -17,6 +17,8 @@ pub enum Commands {
     Refer(refer::ReferArgs),
     /// 考核（access）域：招聘考核流程的沟通命令集
     Access(access::AccessArgs),
+    /// 招聘收件箱同步
+    Inbox(inbox::InboxArgs),
     /// 管理本地缓存
     Cache(CacheArgs),
 }
@@ -126,6 +128,7 @@ pub fn run() {
         Some(Commands::Report(args)) => report::run(args),
         Some(Commands::Refer(args)) => refer::run(args),
         Some(Commands::Access(args)) => access::run(args),
+        Some(Commands::Inbox(args)) => inbox::run(args),
         Some(Commands::Cache(args)) => match &args.action {
             CacheAction::RefreshSurvey => {
                 eprintln!("正在从 HR 邮箱获取最新问卷链接...");
@@ -143,18 +146,16 @@ pub fn run() {
                     }
                 }
             }
-            CacheAction::ShowSurvey => {
-                match crate::connect::cache::get_survey_url() {
-                    Some(url) => {
-                        println!("当前缓存的问卷链接: {}", url);
-                        Ok(())
-                    }
-                    None => {
-                        eprintln!("缓存中没有问卷链接。请运行 'qtrecurit cache refresh-survey' 获取。");
-                        Ok(())
-                    }
+            CacheAction::ShowSurvey => match crate::connect::cache::get_survey_url() {
+                Some(url) => {
+                    println!("当前缓存的问卷链接: {}", url);
+                    Ok(())
                 }
-            }
+                None => {
+                    eprintln!("缓存中没有问卷链接。请运行 'qtrecurit cache refresh-survey' 获取。");
+                    Ok(())
+                }
+            },
             CacheAction::ClearSurvey => {
                 if let Err(e) = crate::connect::cache::clear_survey_url() {
                     eprintln!("清除缓存失败: {}", e);
@@ -186,7 +187,10 @@ pub fn run() {
                         Ok(())
                     }
                     None => {
-                        eprintln!("缓存中没有文件夹 '{}' 的 ID。请运行 'qtrecurit cache refresh-folder-id --name {}' 获取。", args.name, args.name);
+                        eprintln!(
+                            "缓存中没有文件夹 '{}' 的 ID。请运行 'qtrecurit cache refresh-folder-id --name {}' 获取。",
+                            args.name, args.name
+                        );
                         Ok(())
                     }
                 }
@@ -235,18 +239,18 @@ pub fn run() {
                 println!("✓ 二维码图片已缓存: {}", args.path);
                 Ok(())
             }
-            CacheAction::ShowQr => {
-                match crate::connect::cache::get_qr() {
-                    Some(path) => {
-                        println!("当前缓存的二维码图片: {}", path);
-                        Ok(())
-                    }
-                    None => {
-                        eprintln!("缓存中没有二维码图片。请运行 'qtrecurit cache set-qr <图片路径>' 设置。");
-                        Ok(())
-                    }
+            CacheAction::ShowQr => match crate::connect::cache::get_qr() {
+                Some(path) => {
+                    println!("当前缓存的二维码图片: {}", path);
+                    Ok(())
                 }
-            }
+                None => {
+                    eprintln!(
+                        "缓存中没有二维码图片。请运行 'qtrecurit cache set-qr <图片路径>' 设置。"
+                    );
+                    Ok(())
+                }
+            },
             CacheAction::ClearQr => {
                 if let Err(e) = crate::connect::cache::clear_qr() {
                     eprintln!("清除缓存失败: {}", e);

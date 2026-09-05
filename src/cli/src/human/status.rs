@@ -21,14 +21,62 @@ pub fn default_plan() -> RecruitmentPlan {
     RecruitmentPlan {
         month: "2026-06".into(),
         positions: vec![
-            PositionPlan { name: "数据工程师".into(), headcount: 2, filled: 0, in_progress: 0, note: "".into() },
-            PositionPlan { name: "项目经理".into(), headcount: 1, filled: 0, in_progress: 0, note: "".into() },
-            PositionPlan { name: "销售经理".into(), headcount: 1, filled: 0, in_progress: 0, note: "".into() },
-            PositionPlan { name: "新媒体运营".into(), headcount: 1, filled: 0, in_progress: 0, note: "".into() },
-            PositionPlan { name: "课程助教".into(), headcount: 1, filled: 0, in_progress: 0, note: "".into() },
-            PositionPlan { name: "咨询助理".into(), headcount: 1, filled: 0, in_progress: 0, note: "".into() },
-            PositionPlan { name: "商务经理".into(), headcount: 1, filled: 0, in_progress: 0, note: "".into() },
-            PositionPlan { name: "执行助理".into(), headcount: 2, filled: 0, in_progress: 0, note: "".into() },
+            PositionPlan {
+                name: "数据工程师".into(),
+                headcount: 2,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
+            PositionPlan {
+                name: "项目经理".into(),
+                headcount: 1,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
+            PositionPlan {
+                name: "销售经理".into(),
+                headcount: 1,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
+            PositionPlan {
+                name: "新媒体运营".into(),
+                headcount: 1,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
+            PositionPlan {
+                name: "课程助教".into(),
+                headcount: 1,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
+            PositionPlan {
+                name: "咨询助理".into(),
+                headcount: 1,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
+            PositionPlan {
+                name: "商务经理".into(),
+                headcount: 1,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
+            PositionPlan {
+                name: "执行助理".into(),
+                headcount: 2,
+                filled: 0,
+                in_progress: 0,
+                note: "".into(),
+            },
         ],
     }
 }
@@ -87,13 +135,19 @@ pub fn format_status(store: &dyn PlanStore) -> String {
         total_headcount += p.headcount;
         total_filled += p.filled;
         total_in_progress += p.in_progress;
-        out.push_str(&format!("| {} | {} | {} | {} | {} |\n", p.name, p.headcount, p.filled, p.in_progress, p.note));
+        out.push_str(&format!(
+            "| {} | {} | {} | {} | {} |\n",
+            p.name, p.headcount, p.filled, p.in_progress, p.note
+        ));
     }
 
     out.push('\n');
     out.push_str(&format!(
         "> 编制 {} 人 · 已入职 {} 人 · 进行中 {} 人 · 空缺 {} 人\n",
-        total_headcount, total_filled, total_in_progress, total_headcount - total_filled
+        total_headcount,
+        total_filled,
+        total_in_progress,
+        total_headcount - total_filled
     ));
     out.push_str("> 截至 6 月 16 日\n");
 
@@ -125,7 +179,9 @@ mod tests {
 
     #[test]
     fn test_format_status_contains_title() {
-        let store = MockPlanStore { plan: default_plan() };
+        let store = MockPlanStore {
+            plan: default_plan(),
+        };
         let output = format_status(&store);
         assert!(output.contains("2026-06 招聘计划与进度"));
         assert!(output.contains("数据工程师"));
@@ -134,7 +190,9 @@ mod tests {
 
     #[test]
     fn test_format_status_totals() {
-        let store = MockPlanStore { plan: default_plan() };
+        let store = MockPlanStore {
+            plan: default_plan(),
+        };
         let output = format_status(&store);
         assert!(output.contains("编制 10 人"));
         assert!(output.contains("空缺 10 人"));
@@ -144,9 +202,13 @@ mod tests {
     fn test_format_status_with_partial_filled() {
         let plan = RecruitmentPlan {
             month: "2026-06".into(),
-            positions: vec![
-                PositionPlan { name: "数据工程师".into(), headcount: 2, filled: 1, in_progress: 1, note: "试用期".into() },
-            ],
+            positions: vec![PositionPlan {
+                name: "数据工程师".into(),
+                headcount: 2,
+                filled: 1,
+                in_progress: 1,
+                note: "试用期".into(),
+            }],
         };
         let store = MockPlanStore { plan };
         let output = format_status(&store);
@@ -165,9 +227,13 @@ mod tests {
     fn test_format_status_with_filled() {
         let plan = RecruitmentPlan {
             month: "2026-06".into(),
-            positions: vec![
-                PositionPlan { name: "数据工程师".into(), headcount: 2, filled: 1, in_progress: 1, note: "试用期".into() },
-            ],
+            positions: vec![PositionPlan {
+                name: "数据工程师".into(),
+                headcount: 2,
+                filled: 1,
+                in_progress: 1,
+                note: "试用期".into(),
+            }],
         };
         let store = MockPlanStore { plan };
         let output = format_status(&store);
@@ -191,8 +257,20 @@ mod tests {
         let plan = RecruitmentPlan {
             month: "2026-06".into(),
             positions: vec![
-                PositionPlan { name: "全栈工程师".into(), headcount: 1, filled: 0, in_progress: 0, note: "急招".into() },
-                PositionPlan { name: "数据工程师".into(), headcount: 2, filled: 2, in_progress: 0, note: "已满".into() },
+                PositionPlan {
+                    name: "全栈工程师".into(),
+                    headcount: 1,
+                    filled: 0,
+                    in_progress: 0,
+                    note: "急招".into(),
+                },
+                PositionPlan {
+                    name: "数据工程师".into(),
+                    headcount: 2,
+                    filled: 2,
+                    in_progress: 0,
+                    note: "已满".into(),
+                },
             ],
         };
         let store = MockPlanStore { plan };

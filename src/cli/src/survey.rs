@@ -7,7 +7,13 @@
 use anyhow::Result;
 use clap::Args;
 
-use crate::connect::{cache, email::{send_mail, find_candidate_submission, move_message_to_folder, verify_sent_mail, mark_as_read}};
+use crate::connect::{
+    cache,
+    email::{
+        find_candidate_submission, mark_as_read, move_message_to_folder, send_mail,
+        verify_sent_mail,
+    },
+};
 use crate::templates::{self, render_template};
 
 #[derive(Args)]
@@ -49,9 +55,9 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
             })
         }
     };
-    
-    let tpl = templates::find_template("survey")
-        .expect("survey 模板必须存在（templates.rs TEMPLATES）");
+
+    let tpl =
+        templates::find_template("survey").expect("survey 模板必须存在（templates.rs TEMPLATES）");
     let body = render_template(
         tpl,
         &[
@@ -77,7 +83,7 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
     } else {
         "draft".to_string()
     };
-    
+
     // 验证发送结果并标注已读
     if sent && !args.dry_run {
         // 标注已发送的问卷邮件为已读
@@ -86,13 +92,16 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
                 eprintln!("警告: 标注已读失败: {e:#}");
             }
         }
-        
+
         match verify_sent_mail(&args.to, &tpl.subject) {
             Ok(result) => {
                 if result.success {
                     println!("✓ 已发送 | 收件人: {} | {}", args.to, result.message);
                 } else {
-                    println!("⚠ 已发送但无法验证 | 收件人: {} | {}", args.to, result.message);
+                    println!(
+                        "⚠ 已发送但无法验证 | 收件人: {} | {}",
+                        args.to, result.message
+                    );
                 }
             }
             Err(e) => {
@@ -100,18 +109,21 @@ pub fn run(args: &SurveyArgs) -> Result<()> {
             }
         }
     } else if args.dry_run {
-        println!("[dry-run] 收件人: {} | 模板: survey | 状态: {}", args.to, status);
+        println!(
+            "[dry-run] 收件人: {} | 模板: survey | 状态: {}",
+            args.to, status
+        );
     } else {
         println!("✓ 已生成草稿 | 收件人: {} | 模板: survey", args.to);
     }
-    
+
     // 归档候选人的投递邮件到「已发送问卷」文件夹
     if sent && !args.dry_run {
         if let Err(e) = archive_candidate_submission(&args.to) {
             eprintln!("警告: 归档投递邮件失败: {e:#}");
         }
     }
-    
+
     Ok(())
 }
 
@@ -121,15 +133,17 @@ fn archive_candidate_submission(candidate_email: &str) -> Result<()> {
     let folder_id = cache::get_folder_id("已发送问卷")
         .or_else(|| {
             eprintln!("缓存未命中，正在获取已发送问卷文件夹 ID...");
-            cache::fetch_folder_id_from_email("已发送问卷").ok().map(|id| {
-                if let Err(e) = cache::set_folder_id("已发送问卷", &id) {
-                    eprintln!("警告: 缓存文件夹 ID 失败: {}", e);
-                }
-                id
-            })
+            cache::fetch_folder_id_from_email("已发送问卷")
+                .ok()
+                .map(|id| {
+                    if let Err(e) = cache::set_folder_id("已发送问卷", &id) {
+                        eprintln!("警告: 缓存文件夹 ID 失败: {}", e);
+                    }
+                    id
+                })
         })
         .ok_or_else(|| anyhow::anyhow!("无法获取已发送问卷文件夹 ID"))?;
-    
+
     // 搜索候选人的投递邮件
     match find_candidate_submission(candidate_email)? {
         Some(message_id) => {

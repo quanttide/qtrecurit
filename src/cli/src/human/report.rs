@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
-use chrono::NaiveDate;
 use chrono::Datelike;
+use chrono::NaiveDate;
 
 use crate::connect::config;
 use crate::connect::email;
@@ -115,7 +115,11 @@ pub fn format_report(
         ));
         out.push_str("建议根据以下样本调整分类规则：\n\n");
         for subj in unnamed_subjects.iter().take(10) {
-            let display = if subj.is_empty() { "【空主题】" } else { subj };
+            let display = if subj.is_empty() {
+                "【空主题】"
+            } else {
+                subj
+            };
             out.push_str(&format!("- {}\n", display));
         }
         out.push('\n');
@@ -181,8 +185,14 @@ mod tests {
     fn test_format_report_with_data() {
         let rules = config::load_config().rules;
         let items = vec![
-            email::MailItem { subject: "应聘全栈工程师 - 张三".into(), date: "2026-06-15".into() },
-            email::MailItem { subject: "【后端开发】李四".into(), date: "2026-06-16".into() },
+            email::MailItem {
+                subject: "应聘全栈工程师 - 张三".into(),
+                date: "2026-06-15".into(),
+            },
+            email::MailItem {
+                subject: "【后端开发】李四".into(),
+                date: "2026-06-16".into(),
+            },
         ];
         let refs: Vec<&email::MailItem> = items.iter().collect();
         let report = format_report(&refs, &rules, "测试报告");
@@ -195,9 +205,10 @@ mod tests {
     #[test]
     fn test_format_report_unnamed_samples() {
         let rules = test_rules();
-        let items = vec![
-            email::MailItem { subject: "自动回复：感谢投递".into(), date: "2026-06-15".into() },
-        ];
+        let items = vec![email::MailItem {
+            subject: "自动回复：感谢投递".into(),
+            date: "2026-06-15".into(),
+        }];
         let refs: Vec<&email::MailItem> = items.iter().collect();
         let report = format_report(&refs, &rules, "测试");
         assert!(report.contains("未识别邮件样本"));
@@ -207,9 +218,10 @@ mod tests {
     #[test]
     fn test_format_report_empty_subject() {
         let rules = test_rules();
-        let items = vec![
-            email::MailItem { subject: "".into(), date: "2026-06-15".into() },
-        ];
+        let items = vec![email::MailItem {
+            subject: "".into(),
+            date: "2026-06-15".into(),
+        }];
         let refs: Vec<&email::MailItem> = items.iter().collect();
         let report = format_report(&refs, &rules, "测试");
         assert!(report.contains("【空主题】"));

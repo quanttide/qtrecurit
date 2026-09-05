@@ -22,6 +22,10 @@ qtrecurit report
 qtrecurit report --days 30
 qtrecurit report --start 2026-06-01 --end 2026-06-30
 
+# 收件箱同步（最近一批，不跟随分页扫全邮箱）
+qtrecurit inbox sync --mailbox hr@quanttide.com --folder INBOX --page-size 50 --format json
+qtrecurit inbox sync --dry-run --format json
+
 # 人才推荐（推荐信 → 发送，无状态、无凭证号/台账）
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业
 qtrecurit refer --name 张三 --candidate-email wu@example.com --company 示例企业 --dry-run
@@ -48,7 +52,8 @@ qtrecurit report
   │   ├── EmailFetcher     — trait 抽象（收件）
   │   ├── LarkCliFetcher   — lark-cli 实现
   │   ├── send_mail        — 发送通道（草稿/确认，内部写发送日志）
-  │   ├── fetch_all_meta   — 分页拉取收件箱/发件箱
+  │   ├── fetch_recent_meta — 拉取收件箱/发件箱最近一批邮件
+  │   ├── fetch_all_meta    — 分页拉取收件箱/发件箱
   │   ├── fetch_full       — 批量下载完整正文
   │   └── 游标 + 缓存     — 增量同步
   ├── connect/downloader.rs — 附件下载（临时文件→重命名）
@@ -69,7 +74,7 @@ qtrecurit report
 ## 数据流
 
 ```
-Lark 邮箱 → 分页拉取（fetch_all_meta）
+Lark 邮箱 → 最近一批拉取（fetch_recent_meta）
           → 正文下载（fetch_full）
           → 关键词分类岗位（config.rs）
           → 可选：LLM 邮件分类（classifier.rs）

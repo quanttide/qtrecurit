@@ -1,11 +1,12 @@
 pub mod access;
-pub mod exam;
 pub mod cli;
-pub mod interview;
-pub mod invite;
 pub mod connect;
+pub mod exam;
 pub mod funnel;
 pub mod human;
+pub mod inbox;
+pub mod interview;
+pub mod invite;
 pub mod refer;
 pub mod report;
 pub mod survey;

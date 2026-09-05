@@ -31,8 +31,8 @@ pub struct InviteArgs {
 }
 
 pub fn run(args: &InviteArgs) -> Result<()> {
-    let tpl = templates::find_template("invite")
-        .expect("invite 模板必须存在（templates.rs TEMPLATES）");
+    let tpl =
+        templates::find_template("invite").expect("invite 模板必须存在（templates.rs TEMPLATES）");
     let body = render_template(tpl, &[("name".to_string(), args.name.clone())]);
 
     // 二维码路径优先级：--qr 参数 > 本地缓存
@@ -50,8 +50,7 @@ pub fn run(args: &InviteArgs) -> Result<()> {
                 let cache_dir = src.parent().context("无法获取缓存目录")?;
                 let filename = src.file_name().context("无法获取文件名")?;
                 _original_dir = Some(std::env::current_dir()?);
-                std::env::set_current_dir(cache_dir)
-                    .context("切换工作目录失败")?;
+                std::env::set_current_dir(cache_dir).context("切换工作目录失败")?;
                 Some(filename.to_string_lossy().to_string())
             } else {
                 Some(path.clone())

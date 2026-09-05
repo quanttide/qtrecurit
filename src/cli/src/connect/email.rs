@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use anyhow::{Context, Result};
 use serde::Deserialize;
- 
+
 /// lark-cli 命令超时时间（秒），可根据网络状况调整
 pub const LARK_TIMEOUT_SECS: u64 = 60;
 
@@ -85,7 +85,7 @@ fn run_lark_triage(page_token: Option<&str>) -> Result<LarkResponse> {
 /// 运行 lark-cli 命令并解析返回的 LarkResponse JSON。
 fn run_lark_cli<T: serde::de::DeserializeOwned>(args: &[&str]) -> Result<T> {
     let output = run_lark_raw(args)?;
-    Ok(serde_json::from_slice(&output.stdout).context("lark-cli 返回数据格式异常")?)
+    parse_lark_json(&output.stdout)
 }
 
 // ── 通用 lark-cli 调用 ─────────────────────────────────────────────────
@@ -93,13 +93,27 @@ fn run_lark_cli<T: serde::de::DeserializeOwned>(args: &[&str]) -> Result<T> {
 /// 调用 lark-cli 命令，返回解析后的 JSON Value。
 pub fn run_lark_json(args: &[&str]) -> Result<Value> {
     let output = run_lark_raw(args)?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let filtered: String = stdout
+    parse_lark_json(&output.stdout)
+}
+
+fn parse_lark_json<T: serde::de::DeserializeOwned>(stdout: &[u8]) -> Result<T> {
+    let stdout = decode_lark_stdout(stdout);
+    let filtered = stdout
         .lines()
         .filter(|l| !l.starts_with("tip:"))
         .collect::<Vec<_>>()
         .join("\n");
     Ok(serde_json::from_str(&filtered).context("lark-cli 返回数据格式异常")?)
+}
+
+fn decode_lark_stdout(stdout: &[u8]) -> String {
+    match String::from_utf8(stdout.to_vec()) {
+        Ok(text) => text,
+        Err(_) => {
+            let (decoded, _, _) = encoding_rs::GB18030.decode(stdout);
+            decoded.into_owned()
+        }
+    }
 }
 
 /// 调用 lark-cli 命令，返回原始输出。
@@ -305,6 +319,26 @@ pub fn fetch_all_meta(mailbox: &str, folder: &str, page_size: u32) -> Result<Vec
     }
 
     Ok(all_msgs)
+}
+
+/// 拉取指定邮箱文件夹最近一批邮件元数据，不跟随 page_token。
+pub fn fetch_recent_meta(mailbox: &str, folder: &str, limit: u32) -> Result<Vec<Value>> {
+    let limit = limit.to_string();
+    let filter = format!(r#"{{"folder":"{folder}"}}"#);
+    let args = vec![
+        "mail",
+        "+triage",
+        "--mailbox",
+        mailbox,
+        "--max",
+        &limit,
+        "--filter",
+        &filter,
+        "--format",
+        "json",
+    ];
+    let data: Value = run_lark_cli(&args).map_err(|e| anyhow::anyhow!("fetch page failed: {e}"))?;
+    Ok(extract_messages(&data))
 }
 
 /// 批量获取邮件的完整正文（每批最多 20 封）。
@@ -542,37 +576,38 @@ pub fn resolve_date_range(
 // ── 投递邮件搜索与归档 ─────────────────────────────────────────────
 
 /// 搜索候选人邮箱对应的投递邮件，返回最新的 message_id
-/// 
+///
 /// 默认从「已发送实训邀请」文件夹搜索，如未找到则从收件箱搜索
 pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
     // 先从「已发送实训邀请」文件夹搜索
     let folder_id = crate::connect::cache::get_folder_id("已发送实训邀请");
     let filter = folder_id.map(|id| format!(r#"{{"folder":"{}"}}"#, id));
-    
+
     let mut args = vec![
-        "mail", "+triage",
-        "--mailbox", "hr@quanttide.com",
-        "--max", "20",
-        "--format", "json",
+        "mail",
+        "+triage",
+        "--mailbox",
+        "hr@quanttide.com",
+        "--max",
+        "20",
+        "--format",
+        "json",
     ];
     if let Some(ref filter_str) = filter {
         args.push("--filter");
         args.push(filter_str);
     }
-    
+
     let data: Value = run_lark_json(&args)?;
-    
-    let messages = data["messages"]
-        .as_array()
-        .context("无法解析邮件列表")?;
-    
+
+    let messages = data["messages"].as_array().context("无法解析邮件列表")?;
+
     // 从发件人邮箱匹配候选人的投递邮件
     // from 字段格式: "name <email>" 或 "email"
     for msg in messages {
         if let Some(from) = msg["from"].as_str() {
-            let matched = from == email 
-                || from.contains(&format!("<{}>", email))
-                || from.starts_with(email);
+            let matched =
+                from == email || from.contains(&format!("<{}>", email)) || from.starts_with(email);
             if matched {
                 if let Some(message_id) = msg["message_id"].as_str() {
                     return Ok(Some(message_id.to_string()));
@@ -580,23 +615,25 @@ pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
             }
         }
     }
-    
+
     // 如果从「已发送实训邀请」文件夹未找到，尝试从收件箱搜索
     if filter.is_some() {
         let data: Value = run_lark_json(&[
-            "mail", "+triage",
-            "--mailbox", "hr@quanttide.com",
-            "--max", "20",
-            "--format", "json",
+            "mail",
+            "+triage",
+            "--mailbox",
+            "hr@quanttide.com",
+            "--max",
+            "20",
+            "--format",
+            "json",
         ])?;
-        
-        let messages = data["messages"]
-            .as_array()
-            .context("无法解析邮件列表")?;
-        
+
+        let messages = data["messages"].as_array().context("无法解析邮件列表")?;
+
         for msg in messages {
             if let Some(from) = msg["from"].as_str() {
-                let matched = from == email 
+                let matched = from == email
                     || from.contains(&format!("<{}>", email))
                     || from.starts_with(email);
                 if matched {
@@ -607,7 +644,7 @@ pub fn find_candidate_submission(email: &str) -> Result<Option<String>> {
             }
         }
     }
-    
+
     Ok(None)
 }
 
@@ -618,21 +655,28 @@ pub fn move_message_to_folder(message_id: &str, folder_id: &str, dry_run: bool) 
         "remove_label_ids": ["UNREAD"]
     });
     let data_str = data.to_string();
-    
+
     let args = vec![
-        "mail", "user_mailbox.messages", "modify",
-        "--message-id", message_id,
-        "--user-mailbox-id", "hr@quanttide.com",
-        "--data", &data_str,
-        "--as", "user",
-        "--format", "json",
+        "mail",
+        "user_mailbox.messages",
+        "modify",
+        "--message-id",
+        message_id,
+        "--user-mailbox-id",
+        "hr@quanttide.com",
+        "--data",
+        &data_str,
+        "--as",
+        "user",
+        "--format",
+        "json",
     ];
-    
+
     if dry_run {
         eprintln!("[dry-run] lark-cli {}", args.join(" "));
         return Ok(());
     }
-    
+
     let _output = run_lark_raw(&args)?;
     Ok(())
 }
@@ -643,21 +687,28 @@ pub fn mark_as_read(message_id: &str, dry_run: bool) -> Result<()> {
         "remove_label_ids": ["UNREAD"]
     });
     let data_str = data.to_string();
-    
+
     let args = vec![
-        "mail", "user_mailbox.messages", "modify",
-        "--message-id", message_id,
-        "--user-mailbox-id", "hr@quanttide.com",
-        "--data", &data_str,
-        "--as", "user",
-        "--format", "json",
+        "mail",
+        "user_mailbox.messages",
+        "modify",
+        "--message-id",
+        message_id,
+        "--user-mailbox-id",
+        "hr@quanttide.com",
+        "--data",
+        &data_str,
+        "--as",
+        "user",
+        "--format",
+        "json",
     ];
-    
+
     if dry_run {
         eprintln!("[dry-run] lark-cli {}", args.join(" "));
         return Ok(());
     }
-    
+
     let _output = run_lark_raw(&args)?;
     Ok(())
 }
@@ -665,21 +716,24 @@ pub fn mark_as_read(message_id: &str, dry_run: bool) -> Result<()> {
 /// 验证邮件是否成功发送，返回验证结果
 pub fn verify_sent_mail(_to: &str, subject: &str) -> Result<VerifyResult> {
     let data: Value = run_lark_json(&[
-        "mail", "+triage",
-        "--mailbox", "hr@quanttide.com",
-        "--filter", r#"{"folder":"SENT"}"#,
-        "--max", "10",
-        "--format", "json",
+        "mail",
+        "+triage",
+        "--mailbox",
+        "hr@quanttide.com",
+        "--filter",
+        r#"{"folder":"SENT"}"#,
+        "--max",
+        "10",
+        "--format",
+        "json",
     ])?;
-    
-    let messages = data["messages"]
-        .as_array()
-        .context("无法解析邮件列表")?;
-    
+
+    let messages = data["messages"].as_array().context("无法解析邮件列表")?;
+
     for msg in messages {
         let msg_subject = msg["subject"].as_str().unwrap_or("");
         let message_id = msg["message_id"].as_str().unwrap_or("");
-        
+
         // triage 响应不含 to 字段，仅匹配 subject
         if msg_subject == subject {
             return Ok(VerifyResult {
@@ -689,7 +743,7 @@ pub fn verify_sent_mail(_to: &str, subject: &str) -> Result<VerifyResult> {
             });
         }
     }
-    
+
     Ok(VerifyResult {
         success: false,
         message_id: String::new(),
@@ -941,6 +995,32 @@ mod tests {
     }
 
     // ── extract_messages / extract_page_token ──
+
+    #[test]
+    fn test_parse_lark_json_ignores_tip_lines() {
+        let stdout = r#"tip: run "lark-cli mail user_mailboxes profile" to confirm your email identity
+{
+  "messages": [
+    {"message_id": "m_1", "subject": "应聘产品经理"}
+  ],
+  "page_token": "next"
+}
+"#;
+
+        let parsed: Value = parse_lark_json(stdout.as_bytes()).unwrap();
+
+        assert_eq!(parsed["messages"][0]["message_id"], "m_1");
+        assert_eq!(parsed["page_token"], "next");
+    }
+
+    #[test]
+    fn test_parse_lark_json_decodes_gb18030_stdout() {
+        let raw = b"{\"messages\":[{\"message_id\":\"m_1\",\"subject\":\"\xd3\xa6\xc6\xb8\xba\xf3\xb6\xcb\xbf\xaa\xb7\xa2\"}]}";
+
+        let parsed: Value = parse_lark_json(raw).unwrap();
+
+        assert_eq!(parsed["messages"][0]["subject"], "应聘后端开发");
+    }
 
     #[test]
     fn test_extract_messages_empty() {
