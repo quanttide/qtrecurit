@@ -1,19 +1,65 @@
+import { Link } from 'react-router-dom'
+import { employers } from '../data/employers'
+import { positions, type Employment } from '../data/positions'
+
+// 首页：招聘门户定位——量潮和它的朋友们的招聘入口，按就业类型与雇主两个维度导流
 function Home() {
+  const types: { label: Employment; desc: string }[] = [
+    { label: '全职', desc: '合作雇主发布的中长期岗位' },
+    { label: '实习', desc: '「微型创业」式考核，组队参与' },
+    { label: '兼职', desc: '按成交分成，时间灵活' },
+  ]
+
   return (
     <>
-      <section id="company" className="join-section">
-        <h2>公司简介</h2>
-        <p>作为一家制度创新实验室，量潮科技希望可以帮助人类更美好的协作，以促进解放全人类的创造力。</p>
-        <p>量潮科技主营业务包括大数据处理服务、大数据技术课程与软件技术咨询，是浙江理工大学计算机系大数据微专业机构授课方。</p>
+      <section id="portal" className="join-section">
+        <h2>量潮和它的朋友们的招聘门户</h2>
+        <p>
+          这里汇集量潮科技自营岗位与合作雇主的在招机会。你可以按就业类型浏览岗位，也可以直接进入感兴趣的雇主主页了解详情与应聘方式。
+        </p>
       </section>
 
       <section className="join-section">
-        <h2>主营业务</h2>
-        <ul>
-          <li>量潮数据：为高校与科技企业提供高质量、高性价比的数据处理定制服务。</li>
-          <li>量潮课堂：为高校与企业提供大数据技术培训与课程，负责浙理工大数据微专业。</li>
-          <li>量潮咨询：帮助中小企业转型 AI 原生组织。</li>
-        </ul>
+        <h2>按类型找岗位</h2>
+        <div className="position-grid">
+          {types.map(({ label, desc }) => {
+            const count = positions.filter((p) => p.employment === label).length
+            return (
+              <Link key={label} to={`/positions?type=${label}`} className="position-card">
+                <div className="position-head">
+                  <h3>{label}</h3>
+                  <span className="position-category">{count} 个在招</span>
+                </div>
+                <p>{desc}</p>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="join-section">
+        <h2>按雇主找岗位</h2>
+        <div className="position-grid">
+          {employers.map((employer) => {
+            const count = positions.filter((p) => p.employerId === employer.id).length
+            return (
+              <Link
+                key={employer.id}
+                to={`/employers/${employer.id}`}
+                className="position-card"
+              >
+                <div className="position-head">
+                  <h3>{employer.name}</h3>
+                  <span className="position-category">{count} 个在招</span>
+                </div>
+                <p>{employer.intro}</p>
+              </Link>
+            )
+          })}
+        </div>
+        <p>
+          <Link to="/employers">查看全部雇主 →</Link>
+        </p>
       </section>
     </>
   )
