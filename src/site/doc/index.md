@@ -6,7 +6,12 @@ qtrecurit Site 是**对外招聘前台**——招聘启事（岗位要求、报�
 
 | 页面 | 路由 | 内容 |
 |------|------|------|
-| 招聘首页 | `/` | 租户品牌区（logo、主题色、slogan、公司简介）、岗位列表、课堂导流入口、报名指引。详细规划见 [screens/join.md](./screens/join.md) |
+| 招聘首页 | `/` | 招聘门户：量潮和它的朋友们的招聘入口，按就业类型与雇主两个维度导流至 `/positions`、`/employers/:id` |
+| 岗位一览 | `/positions` | 全部在招岗位（按雇主分组），支持按就业类型筛选（`?type=全职/实习/兼职`）；量潮实习的报名/考核与兼职流程、全职岗位的雇主指引按筛选条件展示 |
+| 简历与求职信要求 | `/positions/application` | 量潮实习投递材料要求 |
+| 考核方式详情 | `/positions/assessment` | 量潮实习「微型创业」式考核完整机制 |
+| 雇主列表 | `/employers` | 雇主卡片（简介、在招岗位数），点击进入雇主独立页 |
+| 雇主独立页 | `/employers/:employerId` | 单个雇主简介、在招岗位与投递方式；链接可直接转发给雇主传播 |
 | 投递与授权 | `/apply/:positionId` | 投递表单（简历、求职信）+ 可选"披露量潮信用摘要"授权开关；投递成功生成查询凭证。详细规划见 [screens/apply.md](./screens/apply.md) |
 | 投递状态查询 | `/status/:token` | 凭投递凭证查询处理进度与初筛结果反馈。详细规划见 [screens/status.md](./screens/status.md) |
 
@@ -24,7 +29,8 @@ qtrecurit Site 是**对外招聘前台**——招聘启事（岗位要求、报�
 与 Provider API schema 同源，全部按租户上下文（`X-Tenant-ID`）过滤：
 
 - `tenant_config`：租户品牌配置（logo、主题色、slogan、简介）——样板租户为量潮
-- `position`：岗位（名称、类别、职责、要求）
+- `position`：岗位（名称、类别、职责、要求、雇主、薪酬）
+- `employer`：合作雇主（简介、投递邮箱、邮件主题格式）——自营岗位无雇主
 - `application`：投递（候选人、岗位、简历、求职信、信用披露开关、状态、查询凭证）
 - `credit_summary`：信用摘要（等级、背书状态——仅候选人授权后展示）
 
