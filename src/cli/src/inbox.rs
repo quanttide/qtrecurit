@@ -749,20 +749,42 @@ fn resume_attachments(message: &Value) -> Vec<InboxResumeAttachment> {
 }
 
 fn resume_attachment_from_value(attachment: &Value) -> Option<InboxResumeAttachment> {
-    let file_name = clean_display_text(&decode_mime_words(&string_field(
+    let raw_file_name = clean_display_text(&decode_mime_words(&string_field(
         attachment,
         &["file_name", "filename", "name"],
     )));
-    if file_name.is_empty() || !is_resume_file(&file_name) {
-        return None;
-    }
+    let content_type = string_field(attachment, &["content_type", "mime_type", "mime"]);
+    let file_name = resume_file_name(&raw_file_name, &content_type)?;
     Some(InboxResumeAttachment {
         attachment_id: string_field(attachment, &["attachment_id", "id"]),
         file_name,
-        content_type: string_field(attachment, &["content_type", "mime_type", "mime"]),
+        content_type,
         url: string_field(attachment, &["url", "download_url", "preview_url"]),
         size_bytes: numeric_field(attachment, &["size_bytes", "size"]),
     })
+}
+
+fn resume_file_name(file_name: &str, content_type: &str) -> Option<String> {
+    if file_name.is_empty() {
+        return None;
+    }
+    if is_resume_file(file_name) {
+        return Some(file_name.to_string());
+    }
+    let extension = match content_type
+        .split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "application/pdf" => "pdf",
+        "application/msword" => "doc",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => "docx",
+        _ => return None,
+    };
+    Some(format!("{file_name}.{extension}"))
 }
 
 fn fetch_attachment_download_url(args: &InboxResumeArgs) -> Result<String> {
@@ -954,6 +976,39 @@ mod tests {
         assert_eq!(
             candidates[0].resume_attachments[0].attachment_id,
             "att_resume_001"
+        );
+    }
+
+    #[test]
+    fn test_candidates_infer_docx_extension_from_word_mime() {
+        let messages: Vec<Value> = serde_json::from_str(
+            r#"[
+                {
+                    "message_id":"m_docx",
+                    "head_from":"王五 <wangwu@example.com>",
+                    "subject":"应聘产品经理",
+                    "body_plain_text":"HR 您好，我想投递产品经理岗位。",
+                    "date":"2026-09-04",
+                    "attachments":[
+                        {
+                            "id":"att_docx_001",
+                            "filename":"王五-产品经理简历",
+                            "content_type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        }
+                    ]
+                }
+            ]"#,
+        )
+        .unwrap();
+
+        let candidates = candidates_from_messages(&messages);
+
+        assert_eq!(candidates.len(), 1);
+        assert!(candidates[0].has_resume);
+        assert_eq!(candidates[0].resume_attachments.len(), 1);
+        assert_eq!(
+            candidates[0].resume_attachments[0].file_name,
+            "王五-产品经理简历.docx"
         );
     }
 

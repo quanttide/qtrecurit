@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- 从 Word 简历 MIME 类型补齐缺失的 `.doc` 或 `.docx` 文件扩展名。
+
 ## [0.1.0-beta.4] - 2026-08-25
 
 ### Fixed
