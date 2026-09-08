@@ -180,6 +180,82 @@
   margin: 0;
 }
 
+/* 雇主列表卡片是 Link（a 标签）包裹：去下划线，文字用正文字色而非链接色 */
+a.position-card {
+  text-decoration: none;
+  display: block;
+}
+
+a.position-card p {
+  color: var(--text);
+}
+
+a.position-card:hover h3 {
+  color: var(--accent);
+}
+
+/* ===== 岗位筛选 ===== */
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-tab {
+  font-size: 14px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-tab:hover {
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+.filter-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.position-group-head h2 a {
+  color: var(--text-h);
+  text-decoration: none;
+}
+
+.position-group-head h2 a:hover {
+  color: var(--accent);
+}
+
+.position-tags {
+  margin-top: 12px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.position-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 12px;
+}
+
+.position-apply {
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 /* ===== 考核方式详情 ===== */
 
 .detail-toggle {
