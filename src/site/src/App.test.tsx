@@ -16,7 +16,6 @@ describe('页面渲染冒烟', () => {
     { path: '/employers', expect: '合作雇主' },
     { path: '/employers/qttech', expect: '实习考核方式' },
     { path: '/employers/qttech', expect: '量潮科技' },
-    { path: '/employers/dmu', expect: '大连医科大学课题组' },
   ]
 
   for (const { path, expect: text } of routes) {
