@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Docs
+
+- README 与 roadmap 写明 CLI 定位：数据采集管道，业务本体在 Provider；立「流程入手册、资产入代码」铁律，指向 docs/dev-guide 商业化设计链三篇
+
 ### Removed
 
 - 停用邮件驱动招聘流程（决策见 docs/dev-guide/roadmap.md）：移除 access 域四命令（survey/invite/exam/interview）、模板系统（templates.rs 与 templates/）、cache 命令及问卷链接/文件夹 ID/模板数据源/二维码缓存；email.rs 移除投递邮件搜索、归档、已读标注与发送验证。保留 report/refer/inbox sync 三条命令
