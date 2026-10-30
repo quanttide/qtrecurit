@@ -4,6 +4,9 @@
 
 ### Removed
 
+- Studio 移除「候选人透明窗口」整套实现（凭证查询/推荐信/评估记录/信任记录/授权管理五页，含 lib/、test/、docs/ 规划与 mock 数据）——该设计已判过时；Studio 改为企业/招聘者工作台，第一版只服务量潮自己，Flutter 脚手架保留
+- 三篇商业化文档（BRD/服务设计/多租户架构）顶部标注暂缓：暂时不考虑商业模式，多租户形态一并暂缓，多租户后端路线不再作数
+- CLI README 与 roadmap 删除指向三篇商业文档的「商业化设计链」引用，定位改为 Provider 后端本体 + Site 门户 + Studio/Lite 两端待建
 - CLI 停用邮件驱动招聘流程：移除 access 域四命令（问卷/邀请/笔试/面试）、模板系统与 cache 命令，保留 report/refer/inbox sync（详见 src/cli/CHANGELOG.md）
 
 ### Fixed

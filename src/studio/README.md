@@ -1,17 +1,17 @@
-# qtrecurit_studio
+# qtrecurit Studio
 
-量潮招聘
+量潮招聘 Studio——**企业/招聘者工作台**，第一版只服务量潮自己（dogfooding）。
 
-## Getting Started
+## 状态
 
-This project is a starting point for a Flutter application.
+待建。原「候选人透明窗口」实现（凭证查询、评估记录、信任记录、授权管理五页）已于 2026-10-30 整套作废并移除，历史见 git 记录。求职者端归 Lite（待建），公开传播门户是 Site。
 
-A few resources to get you started if this is your first Flutter project:
+## 定位
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- 企业工作台：招聘者在租户内筛人、管理考核流程（具体功能待设计）
+- 接 Provider（Go）的 API，不自建数据层
+- 与 Lite 共用 Provider 的同一套评估字段与信任字段，差别只在权限范围
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 技术约定
+
+Flutter（脚手架保留，含 web 产物，pubspec.lock 入库、构建产物忽略）。

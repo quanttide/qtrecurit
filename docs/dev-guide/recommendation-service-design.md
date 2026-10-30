@@ -1,5 +1,7 @@
 # 推荐服务化产品设计
 
+> **状态：暂缓（2026-10-30）。** 暂时不考虑商业模式，本文所涉商业化方向搁置；多租户平台形态一并暂缓。保留作历史设计参考，重启前先与用户确认。
+
 招聘商业化的核心决策：**推荐是服务，不是信用销售**。源自 2026-08-17 决策（[产品日志](https://github.com/quanttide/quanttide-journal-of-product-development/blob/main/qtrecurit/2026-08-17.md)、[商务日志](https://github.com/quanttide/quanttide-journal-of-business-development/blob/main/qtrecurit/2026-08-17.md)），承接 ROADMAP 阶段三（品牌商业化）的先导设计。
 
 ## 背景
