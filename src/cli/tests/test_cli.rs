@@ -25,12 +25,6 @@ fn test_refer_help() {
 }
 
 #[test]
-fn test_access_help() {
-    let mut cmd = Command::cargo_bin("qtrecurit").unwrap();
-    cmd.args(["access", "--help"]).assert().success();
-}
-
-#[test]
 fn test_inbox_help() {
     let mut cmd = Command::cargo_bin("qtrecurit").unwrap();
     cmd.args(["inbox", "--help"]).assert().success();
@@ -44,23 +38,4 @@ fn test_inbox_sync_dry_run_json() {
         .success()
         .stdout(predicates::str::contains("\"status\":\"dry_run\""))
         .stdout(predicates::str::contains("\"candidates\""));
-}
-
-#[test]
-fn test_access_survey_dry_run_without_link_does_not_read_mail() {
-    let mut cmd = Command::cargo_bin("qtrecurit").unwrap();
-    let cache = tempfile::tempdir().unwrap();
-    cmd.env("XDG_CACHE_HOME", cache.path()).env("PATH", "");
-    cmd.args([
-        "access",
-        "survey",
-        "--to",
-        "candidate@example.com",
-        "--name",
-        "Candidate",
-        "--dry-run",
-    ])
-    .assert()
-    .success()
-    .stdout(predicates::str::contains("[dry-run]"));
 }

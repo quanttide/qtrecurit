@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Removed
+
+- CLI 停用邮件驱动招聘流程：移除 access 域四命令（问卷/邀请/笔试/面试）、模板系统与 cache 命令，保留 report/refer/inbox sync（详见 src/cli/CHANGELOG.md）
+
 ### Fixed
 
 - 从 Word 简历 MIME 类型补齐缺失的 `.doc` 或 `.docx` 文件扩展名。
