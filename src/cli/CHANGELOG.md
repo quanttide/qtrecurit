@@ -3,6 +3,7 @@
 ### Docs
 
 - README 与 roadmap 写明 CLI 定位：数据采集管道，业务本体在 Provider；立「流程入手册、资产入代码」铁律，指向 docs/dev-guide 商业化设计链三篇
+- README 与 roadmap 补章程边界注记：批量与统计能力属采集管道工程目标，不构成课题立项评审的方向依据（章程第七条）
 
 ### Removed
 

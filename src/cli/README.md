@@ -8,7 +8,7 @@
 
 本 CLI 是**数据采集管道**，不是招聘流程的执行者。平台的业务本体是 Provider（多租户后端原型），招聘前台是 Site，候选人窗口是 Studio；CLI 为它们采集投递数据、漏斗统计与信用凭证。招聘的定位是「内部系统招聘 + 服务推荐给其他企业」，目标是摸索可商业化、可定量核算的招聘业务。
 
-判断依据与「流程入手册、资产入代码」的铁律见 [`docs/dev-guide/roadmap.md`](docs/dev-guide/roadmap.md)。商业化设计链：
+判断依据与「流程入手册、资产入代码」的铁律见 [`docs/dev-guide/roadmap.md`](docs/dev-guide/roadmap.md)。边界：本 CLI 的批量处理与统计能力属采集管道的工程目标，不构成课题立项评审的方向依据——依章程第七条，效率与自动化导向不纳入体系支持范围。商业化设计链：
 
 - [`docs/dev-guide/recommendation-service-brd.md`](docs/dev-guide/recommendation-service-brd.md)：推荐服务化 BRD
 - [`docs/dev-guide/recommendation-service-design.md`](docs/dev-guide/recommendation-service-design.md)：商业模式与三端角色
