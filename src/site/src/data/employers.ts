@@ -16,4 +16,12 @@ export const employers: Employer[] = [
     applyEmail: 'hr@quanttide.com',
     subjectFormat: '姓名-学校-应聘岗位',
   },
+  {
+    id: 'quanttide-academy',
+    name: '量潮实训基地',
+    intro:
+      '量潮实训基地是量潮的培养主体，提供教学实习服务（分免费与付费模式），依托实训基地与量潮课堂运行；通过课堂模式可过渡到正式实习。',
+    applyEmail: 'hr@quanttide.com',
+    subjectFormat: '姓名-学校-教学实习',
+  },
 ]
