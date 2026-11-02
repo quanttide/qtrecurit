@@ -12,7 +12,7 @@ export interface Position {
   salary?: string
 }
 
-// 2026-11 政策：量潮科技只放高级岗位（职业身份），实训基地全量设置并细分（手艺技能）
+// 2026-11 政策：量潮科技=高级岗位（职业身份），实训基地=全部初级岗位（手艺技能），两主体零同名岗
 export const positions: Position[] = [
   // 量潮科技——正式实习
   {
@@ -51,21 +51,7 @@ export const positions: Position[] = [
     employerId: 'qttech',
   },
 
-  // 量潮实训基地——教学实习：公司岗位全量设置，另按手艺细分
-  {
-    name: '执行助理',
-    employment: '实习',
-    category: '管理类',
-    duty: '负责高管日程与会议组织、任务跟踪与落实反馈、重要事项跨部门协调等工作。',
-    employerId: 'quanttide-academy',
-  },
-  {
-    name: '架构师',
-    employment: '实习',
-    category: '技术类',
-    duty: '负责系统整体架构设计、技术选型与演进路线、关键技术难题攻关及技术规范制定等工作。',
-    employerId: 'quanttide-academy',
-  },
+  // 量潮实训基地——教学实习：全部初级岗；与公司按手艺分层配对（助理 vs 经理），技术手艺由工程师岗承接
   {
     name: '产品助理',
     employment: '实习',
